@@ -17,7 +17,8 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    package_dir={"": "unitpy"},
-    packages=setuptools.find_packages(where="unitpy"),
+    package_dir={"": "src"},
+    py_modules=["unitpy"],
+    packages=setuptools.find_packages(where="src"),
     python_requires=">=3.6",
 )
