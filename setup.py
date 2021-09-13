@@ -9,7 +9,7 @@ setuptools.setup(
     url='https://github.com/dylanwal/unitpy',
     author='Dylan',
     author_email='',
-    description='Unit',
+    description='Working with scientific units in python.',
     long_description=long_description,
     long_description_content_type="text/markdown",
     classifiers=[
