@@ -4,140 +4,130 @@ from unitpy.ledger import ledger
 
 
 class Parser:
-    """
-    The parser uses a recursive descent parsing technique, where each method corresponds to a
-    nonterminal symbol in the grammar of the algebraic equation language. The parse_expression()
-    method corresponds to the top-level expression, which can be a sum or difference of terms.
-    The parse_term() method corresponds to a term, which can be a product or quotient of factors.
-    The parse_factor() method corresponds to a factor, which can be a base raised to a power.
-    The parse_base() method corresponds to a base, which can be a number, a variable, or a
-    parenthesized expression. The parse_operator() method corresponds to an operator,
-    which can be +, -, *, /, or ^.
-
-    """
-    def __init__(self, expr):
-        self.expr = expr
+    def __init__(self, expression):
+        self.expression = expression
         self.pos = 0
-        self.variables = {}
+        self.unit_dict = dict()
 
-    def parse(self):
-        """
-        main method of the parser
-        Returns
-        -------
-
-        """
-
+    def parse(self) -> dict[str, float | int]:
         result = self.parse_expression()
-        if self.pos != len(self.expr):
-            raise ValueError('Invalid input')
+        if self.pos != len(self.expression):
+            raise ValueError('Unexpected character at position ' + str(self.pos))
         return result
 
-    def parse_expression(self):
-        """
-        parses a sum or difference of terms
-
-        Returns
-        -------
-
-        """
-        terms = [self.parse_term()]
-        while self.pos < len(self.expr):
-            op = self.parse_operator()
-            term = self.parse_term()
-            if op == '+':
-                terms.append(term)
-            elif op == '-':
-                terms.append(-term)
+    def parse_expression(self) -> dict[str, float | int]:
+        result = self.parse_term()
+        while True:
+            if self.consume('+'):
+                result += self.parse_term()
+            elif self.consume('-'):
+                result -= self.parse_term()
             else:
-                raise ValueError('Invalid operator')
-        return sum(terms)
+                return result
 
-    def parse_term(self):
-        """
-        parses a product or quotient of factors
-
-        Returns
-        -------
-
-        """
-        factors = [self.parse_factor()]
-        while self.pos < len(self.expr):
-            op = self.parse_operator()
-            if op == '*' or op == '/':
-                factor = self.parse_factor()
-                if op == '*':
-                    factors.append(factor)
-                elif op == '/':
-                    factors.append(1/factor)
+    def parse_term(self) -> dict[str, float | int]:
+        result = self.parse_factor()
+        while True:
+            if self.consume('*'):
+                res = self.parse_factor()
+                add
+            elif self.consume('/'):
+                res = self.parse_factor()
+                subb
             else:
-                self.pos -= 1
-                break
-        result = 1
-        for factor in factors:
-            result *= factor
-        return result
+                return result
 
-    def parse_factor(self):
-        """ parses a base raised to a power """
-        base = self.parse_base()
-        while self.pos < len(self.expr):
-            op = self.parse_operator()
-            if op == '^':
-                exponent = self.parse_factor()
-                base **= exponent
+    def parse_factor(self, neg: bool = False) -> dict[str, float | int]:
+        result = self.parse_base()
+
+        while True:
+            if self.consume('^'):
+                super_script = self.parse_base()
+                if "number" not in super_script and len(super_script.keys()) != 1:
+                    raise ValueError("power must be numbers.")
+
+                self.add_to_unit_dict(result, -1 * super_script["number"])
             else:
-                self.pos -= 1
-                break
-        return base
+                return result
 
-    def parse_base(self):
-        """parses either a number, a variable or a parenthesized expression"""
+    def add_to_unit_dict(self, dict_, value):
+        for k, v in dict_:
+            if unit in self.unit_dict:
+                self.unit_dict[unit] += value
+            else:
+                self.unit_dict[unit] = value
+
+    def parse_base(self) -> dict[str, float | int]:
         if self.consume('('):
             result = self.parse_expression()
             self.expect(')')
-            return result
+        elif self.is_number():
+            result = dict(number=float(self.consume_regex(r'\d+(\.\d*)?')))
+        elif self.is_variable():
+            result = {self.parse_variable(): 1}
         else:
-            match = ledger.get_unit(self.expr[self.pos:])  # re.match(r'[a-zA-Z]', self.expr[self.pos:])
-            if match:
-                self.pos += 1
-                return match
-            else:
-                match = re.match(r'\d+(\.\d+)?', self.expr[self.pos:])
-                if match:
-                    self.pos += match.end()
-                    return float(match.group(0))
-                else:
-                    raise ValueError('Invalid input')
+            raise ValueError('Unexpected character at position ' + str(self.pos))
+
+        return result
+
+    # def parse_metric_unit(self):
+    #     result = {}
+    #     while True:
+    #         if self.consume_regex(r'[a-z]'):
+    #             unit = self.expression[self.pos - 1]
+    #             if unit in metric_units:
+    #                 result[unit] = metric_units[unit]
+    #             else:
+    #                 raise ValueError('Unexpected metric unit "' + unit + '" at position ' + str(self.pos - 1))
+    #         elif self.consume('^'):
+    #             power = int(self.consume_regex(r'\d+'))
+    #             for unit in result.keys():
+    #                 result[unit] *= power
+    #         else:
+    #             return result
+
+    def parse_variable(self):
+        var_name = self.consume_regex(r'[a-zA-Z]')
+        return ledger.get_unit(var_name)
 
     def parse_operator(self):
-        """
-        parses an operator (+, -, *, /, ^)
-
-        Returns
-        -------
-
-        """
-        match = re.match(r'[+\-*/^]', self.expr[self.pos:])
-        if match:
-            self.pos += 1
-            return match.group(0)
+        if self.consume('+'):
+            return '+'
+        elif self.consume('-'):
+            return '-'
+        elif self.consume('*'):
+            return '*'
+        elif self.consume('/'):
+            return '/'
+        elif self.consume('^'):
+            return '^'
         else:
-            raise ValueError('Invalid input')
+            raise ValueError('Expected an operator at position ' + str(self.pos))
 
     def consume(self, char):
-        """consumes a character from the input """
-        if self.pos < len(self.expr) and self.expr[self.pos] == char:
+        if self.pos < len(self.expression) and self.expression[self.pos] == char:
             self.pos += 1
             return True
         else:
             return False
 
+    def consume_regex(self, pattern):
+        match = re.match(pattern, self.expression[self.pos:])
+        if match:
+            self.pos += match.end()
+            return match.group(0)
+        else:
+            raise ValueError('Expected a pattern at position ' + str(self.pos))
+
     def expect(self, char):
-        """consumes a character from the input if it matches the given argument"""
         if not self.consume(char):
-            raise ValueError('Expected %s' % char)
+            raise ValueError('Expected "' + char + '" at position ' + str(self.pos))
 
-    def set_variable(self, var, value):
-        self.variables[var] = value
+    def is_number(self):
+        return re.match(r'\d+(\.\d*)?', self.expression[self.pos:])
 
+    def is_variable(self):
+        match = re.match(r'[a-zA-Z]+', self.expression[self.pos:])
+        if match and self.expression[self.pos:] in ledger.ledger:
+            return True
+        return False

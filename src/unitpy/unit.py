@@ -9,7 +9,7 @@ class Unit:
         self._dimensionality: dict[UnitEntry, int | float] = parser.parse()
 
     def __str__(self):
-        return self._unit_entry.label
+        return "1"
 
     @property
     def dimensionless(self) -> bool:
