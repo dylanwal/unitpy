@@ -1,20 +1,22 @@
-# Define a dictionary of metric prefixes and their factors
 
-
-
+from unitpy.ledger import ledger, UnitEntry
+from unitpy.unit_parsing import Parser
 
 
 class Unit:
+    def __init__(self, unit_str: str):
+        parser = Parser(unit_str)
+        self._dimensionality: dict[UnitEntry, int | float] = parser.parse()
 
-    def __init__(self, unit):
-        if isinstance(unit, str):
-            self._unit = self._parse_unit(unit)
-        # elif isinstance(unit, Unit):
-        #     self._unit = unit._unit
-        else:
-            raise TypeError("units must be of type str, or Unit.")
+    def __str__(self):
+        return self._unit_entry.label
 
-        # self._dimensionality = self._get_dimensionality(self._units)
+    @property
+    def dimensionless(self) -> bool:
+        if self._dimensionality:
+            return False
+        return True
+
 
     # def __copy__(self) -> Unit:
     #     ret = self.__class__(self._units)
@@ -89,9 +91,9 @@ class Unit:
     #     """
     #     return self._dimensionality
 
-    def parse(self, input: str):
-        """ Pares string into Units."""
-        seperate = self._parse_muliple_units()
-        prefix, base = self._parse_prefix()
-
-    def _parse_muliple_units(self, input: str): list
+    # def parse(self, input: str):
+    #     """ Pares string into Units."""
+    #     seperate = self._parse_muliple_units()
+    #     prefix, base = self._parse_prefix()
+    #
+    # def _parse_muliple_units(self, input: str): list
