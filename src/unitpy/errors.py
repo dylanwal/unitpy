@@ -14,3 +14,11 @@ class UnitPyError(Exception):
 
 class UndefinedUnitError(UnitPyError):
     """ raise for unrecognized units """
+
+
+class UnitError(UnitPyError):
+    """ pass"""
+
+
+class QuantityError(UnitPyError):
+    """ pass"""

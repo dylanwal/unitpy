@@ -9,7 +9,7 @@ Ratio is defined with respect to base
 """
 
 acceleration = {
-    "base": "meter per second squared",
+    "base": "meter*second**2",
     "standard_gravity": {
         "ratio": lambda x: x / 9.806_65,
         "abbr": ["g_0", "g0", "g_n", "gravity"]
@@ -49,7 +49,7 @@ angle = {
 }
 
 area = {
-    "base": "square meter",
+    "base": "square*meter",
     "acre": {
         "ratio": lambda x: x / 4.046_873e3,
         "abbr": ["acre_survey"]
@@ -254,7 +254,7 @@ illuminance = {
 }
 
 luminance = {
-    "base": "candela per square meter",
+    "base": "candela/meter**2",
     "footlambert": {
         "ratio": lambda x: x / 3.426_259,
         "abbr": []
@@ -327,7 +327,7 @@ mass = {
 }
 
 mass_d_length = {
-    "base": "kilogram per meter",
+    "base": "kilogram/meter",
     "denier": {
         "ratio": lambda x: x / 1.111_111e-7,
         "abbr": []
@@ -413,10 +413,6 @@ stress = {
 
 temperature = {
     "base": "kevin",
-    "Celsius": {
-        "ratio": lambda x: x - 273.15,
-        "abbr": ["degC", "centigrade", "celsius"]
-    },
     "Fahrenheit": {
         "ratio": lambda x: x * 1.8 - 459.67,
         "abbr": ["degF", "fahrenheit"]
@@ -495,12 +491,12 @@ time = {
 
 
 velocity = {
-    "base": "meter per second",
+    "base": "meter/second",
 }
 
 
-viscosity_dynamic = {
-    "base": "pascal second",
+dynamic_viscosity = {
+    "base": "pascal*second",
     "poise": {
         "ratio": lambda x: x / 1e-1,
         "abbr": ["P"]
@@ -509,7 +505,7 @@ viscosity_dynamic = {
 
 
 viscosity_kinematic = {
-    "base": "meter squared per second",
+    "base": "meter**2/second",
     "stokes": {
         "ratio": lambda x: x / 1e-4,
         "abbr": ["St"]
@@ -518,7 +514,7 @@ viscosity_kinematic = {
 
 
 volume = {
-    "base": "cubic meter",
+    "base": "meter**3",
     "acre_foot": {
         "ratio": lambda x: x / 1.233_489e3,
         "abbr": []

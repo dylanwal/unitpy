@@ -2,6 +2,10 @@ from __future__ import annotations
 
 
 class Prefix:
+    """
+
+    Only applied to base and derived units and metric
+    """
     __slots__ = ("multiplier", "name", "abbr")
 
     def __init__(self, name: str, multiplier: float, abbr: tuple[str, ...]):
@@ -37,7 +41,25 @@ exa = Prefix("exa", 1e18, ("E",))
 zetta = Prefix("zetta", 1e21, ("Z",))
 yotta = Prefix("yotta", 1e24, ("Y",))
 
-prefixes = (
-    yocto, zepto, atto, femto, pico, nano, micro, milli, centi, deci, deca, hecto, kilo, mega, giga, tera,
-    peta, exa, zetta, yotta
-)
+prefixes = {
+    "yocto": yocto,
+    "zepto": zepto,
+    "atto": atto,
+    "femto": femto,
+    "pico": pico,
+    "nano": nano,
+    "micro": micro,
+    "milli": milli,
+    "centi": centi,
+    "deci": deci,
+    "deca": deca,
+    "hecto": hecto,
+    "kilo": kilo,
+    "mega": mega,
+    "giga": giga,
+    "tera": tera,
+    "peta": peta,
+    "exa": exa,
+    "zetta": zetta,
+    "yotta": yotta,
+}

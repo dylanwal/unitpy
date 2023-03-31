@@ -1,21 +1,45 @@
 import re
 
-from unitpy.ledger import ledger
+import unitpy.errors as errors
+from unitpy.definitions.ledger import Entry, ledger
+
+
+def apply_multiplier(dict_, multiplier: int | float):
+    for k in dict_:
+        value = multiplier * dict_[k]
+        dict_[k] = value
+
+
+def add_to_unit_dict(dict1, dict2):
+    for k in dict2:
+        if k in dict1:
+            dict1[k] += dict2[k]
+        else:
+            dict1[k] = dict2[k]
 
 
 class Parser:
-    def __init__(self, expression):
+    def __init__(self, expression: str):
         self.expression = expression
         self.pos = 0
-        self.unit_dict = dict()
 
-    def parse(self) -> dict[str, float | int]:
+    def parse(self) -> dict[Entry | str, float | int]:
+        self.syntax_fix()
         result = self.parse_expression()
         if self.pos != len(self.expression):
-            raise ValueError('Unexpected character at position ' + str(self.pos))
+            raise errors.UndefinedUnitError('Unexpected character at position ' + str(self.pos))
         return result
 
-    def parse_expression(self) -> dict[str, float | int]:
+    def syntax_fix(self):
+        self.expression = self.expression.replace("   ", " ")
+        self.expression = self.expression.replace("  ", " ")
+        self.expression = self.expression.replace(" ", "*")
+        self.expression = self.expression.replace("**", "^")
+        # self.expression = self.expression.replace(" per ", "/")
+        # self.expression = self.expression.replace("squared", "^2")
+        # self.expression = self.expression.replace("cubed", "^3")
+
+    def parse_expression(self) -> dict[Entry | str, float | int]:
         result = self.parse_term()
         while True:
             if self.consume('+'):
@@ -25,19 +49,20 @@ class Parser:
             else:
                 return result
 
-    def parse_term(self) -> dict[str, float | int]:
+    def parse_term(self) -> dict[Entry | str, float | int]:
         result = self.parse_factor()
         while True:
             if self.consume('*'):
-                res = self.parse_factor()
-                add
+                result_ = self.parse_factor()
+                add_to_unit_dict(result, result_)
             elif self.consume('/'):
-                res = self.parse_factor()
-                subb
+                result_ = self.parse_factor()
+                apply_multiplier(result_, -1)
+                add_to_unit_dict(result, result_)
             else:
                 return result
 
-    def parse_factor(self, neg: bool = False) -> dict[str, float | int]:
+    def parse_factor(self) -> dict[Entry | str, float | int]:
         result = self.parse_base()
 
         while True:
@@ -46,27 +71,23 @@ class Parser:
                 if "number" not in super_script and len(super_script.keys()) != 1:
                     raise ValueError("power must be numbers.")
 
-                self.add_to_unit_dict(result, -1 * super_script["number"])
+                apply_multiplier(result, super_script["number"])
             else:
                 return result
 
-    def add_to_unit_dict(self, dict_, value):
-        for k, v in dict_:
-            if unit in self.unit_dict:
-                self.unit_dict[unit] += value
-            else:
-                self.unit_dict[unit] = value
-
-    def parse_base(self) -> dict[str, float | int]:
+    def parse_base(self) -> dict[Entry, float | int]:
         if self.consume('('):
             result = self.parse_expression()
             self.expect(')')
         elif self.is_number():
-            result = dict(number=float(self.consume_regex(r'\d+(\.\d*)?')))
+            num = float(self.consume_regex(r'\d+(\.\d*)?'))
+            if num.is_integer():
+                num = int(num)
+            result = dict(number=num)
         elif self.is_variable():
             result = {self.parse_variable(): 1}
         else:
-            raise ValueError('Unexpected character at position ' + str(self.pos))
+            raise errors.UndefinedUnitError('Unexpected character at position ' + str(self.pos))
 
         return result
 
@@ -87,7 +108,7 @@ class Parser:
     #             return result
 
     def parse_variable(self):
-        var_name = self.consume_regex(r'[a-zA-Z]')
+        var_name = self.consume_regex(r'[a-zA-Z]+')
         return ledger.get_unit(var_name)
 
     def parse_operator(self):
@@ -102,7 +123,7 @@ class Parser:
         elif self.consume('^'):
             return '^'
         else:
-            raise ValueError('Expected an operator at position ' + str(self.pos))
+            raise errors.UndefinedUnitError('Expected an operator at position ' + str(self.pos))
 
     def consume(self, char):
         if self.pos < len(self.expression) and self.expression[self.pos] == char:
@@ -117,17 +138,17 @@ class Parser:
             self.pos += match.end()
             return match.group(0)
         else:
-            raise ValueError('Expected a pattern at position ' + str(self.pos))
+            raise errors.UndefinedUnitError('Expected a pattern at position ' + str(self.pos))
 
     def expect(self, char):
         if not self.consume(char):
-            raise ValueError('Expected "' + char + '" at position ' + str(self.pos))
+            raise errors.UndefinedUnitError('Expected "' + char + '" at position ' + str(self.pos))
 
     def is_number(self):
         return re.match(r'\d+(\.\d*)?', self.expression[self.pos:])
 
     def is_variable(self):
         match = re.match(r'[a-zA-Z]+', self.expression[self.pos:])
-        if match and self.expression[self.pos:] in ledger.ledger:
+        if match and ledger.unit_in_ledger(self.expression[self.pos:self.pos+match.end()]):
             return True
         return False
