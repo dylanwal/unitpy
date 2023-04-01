@@ -1,7 +1,7 @@
 import pkg_resources
 
 from unitpy.definitions.ledger import ledger
-from unitpy.unit import Unit
+from unitpy.core import Unit
 # from src.unitpy.quantity import Quantity
 # from src.unitpy.measurement import Measurement
 

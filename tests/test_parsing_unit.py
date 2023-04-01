@@ -1,7 +1,7 @@
 import pytest
 
 from unitpy.definitions.ledger import ledger
-from unitpy.unit_parsing import Parser
+from unitpy.utils.parsing import Parser
 
 
 cases = [
