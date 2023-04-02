@@ -22,7 +22,7 @@ class Entry:
                  additional_labels: list[str, ...] = None,
                  ):
         self.label = label
-        self.abbr = abbr
+        self.abbr = abbr if abbr is not None else label
         self.prefix = prefix
         self.additional_labels = additional_labels if additional_labels is not None else []
         self.base_unit = base_unit

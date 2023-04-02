@@ -4,14 +4,14 @@ from unitpy.utils.equation_formating import equation_formater
 
 
 class BaseDimension:
-    __slots__ = ("name", "abbr")
+    __slots__ = ("label", "abbr")
 
-    def __init__(self, name: str, abbr: str):
-        self.name = name
+    def __init__(self, label: str, abbr: str):
+        self.label = label
         self.abbr = abbr
 
     def __str__(self):
-        return f"[{self.name}]"
+        return f"[{self.label}]"
 
     def __repr__(self):
         return f"[{self.abbr}]"
@@ -59,7 +59,15 @@ class Dimension:
         self.electric_current = electric_current
 
     def __str__(self):
-        return equation_formater(self.as_dict())
+        return self.label
+
+    @property
+    def label(self) -> str:
+        return equation_formater({f"[{k.label}]": v for k, v in self.as_dict().items()})
+
+    @property
+    def abbr(self) -> str:
+        return equation_formater({f"[{k.abbr}]": v for k, v in self.as_dict().items()})
 
     @property
     def dimensionless(self) -> bool:
@@ -78,7 +86,7 @@ class Dimension:
 
     def add_dimension(self, dim: BaseDimension | str, value: int | float):
         if isinstance(dim, BaseDimension):
-            attr = getattr(self, dim.name)
+            attr = getattr(self, dim.label)
         elif dim in self.__slots__:
             attr = getattr(self, dim)
         else:

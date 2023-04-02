@@ -6,29 +6,39 @@ from unitpy.definitions.ledger import ledger
 from unitpy.core import Unit, Quantity
 
 
-def apply_multiplier(dict_, multiplier: int | float):
-    for k in dict_:
-        value = multiplier * dict_[k]
-        dict_[k] = value
+def convert_to_number(value: str) -> int | float:
+    value = float(value)
+    if value.is_integer():
+        value = int(value)
+
+    return value
 
 
-def add_to_unit_dict(dict1, dict2):
-    for k in dict2:
-        if k in dict1:
-            dict1[k] += dict2[k]
-        else:
-            dict1[k] = dict2[k]
+def get_value(text: str) -> tuple[int | float, str]:
+    best_index = 0
+    for i in range(len(text)+1):
+        try:
+            float(text[:i])
+            best_index = i
+        except ValueError:
+            pass
+
+    if best_index == 0:
+        raise ValueError(f"No value detected in : {text}")
+
+    return convert_to_number(text[:best_index]), text[best_index:]
 
 
 def parse_quantity(quantity: str) -> Quantity:
-    parser = Parser(quantity)
-    result = parser.parse()
-    if not isinstance(result, Quantity):
-        raise ValueError(f"Provided string is not a quantity: {quantity}")
-    return result
+    value, unit = get_value(quantity)
+    unit = parse_unit(unit)
+    return value * unit
 
 
 def parse_unit(unit: str) -> Unit:
+    if unit == "":
+        return Unit()
+
     parser = Parser(unit)
     result = parser.parse()
     if not isinstance(result, Unit):
@@ -137,7 +147,7 @@ class Parser:
         return None
 
     def get_unit(self) -> Unit | None:
-        match = re.match(r'[a-zA-Z]+', self.expression[self.pos:])
+        match = re.match(r'[a-zA-Z_]+', self.expression[self.pos:])
         if match:
             value = self.expression[self.pos:self.pos+match.end()]
             if value in ledger:

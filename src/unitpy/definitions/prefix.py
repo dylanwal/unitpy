@@ -6,18 +6,18 @@ class Prefix:
 
     Only applied to base and derived units and metric
     """
-    __slots__ = ("multiplier", "name", "abbr")
+    __slots__ = ("multiplier", "label", "abbr")
 
-    def __init__(self, name: str, multiplier: float, abbr: tuple[str, ...]):
-        self.name = name
+    def __init__(self, label: str, multiplier: float, abbr: tuple[str, ...]):
+        self.label = label
         self.multiplier = multiplier
         self.abbr = abbr
 
     def __str__(self):
-        return self.name
+        return self.label
 
     def __repr__(self):
-        return self.name
+        return self.label
 
 
 prefixes = {

@@ -100,7 +100,7 @@ def add_with_prefix(entry: Entry):
     for pre in ledger.prefixes.values():
         ledger.add_unit(
             Entry(
-                label=pre.name + entry.label,
+                label=pre.label + entry.label,
                 abbr=pre.abbr[0] + entry.abbr,
                 base_unit=entry.base_unit,
                 multiplier=entry.multiplier,

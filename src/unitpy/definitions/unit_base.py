@@ -86,7 +86,10 @@ class BaseSet:
         self.ampere = ampere
 
     def __str__(self):
-        return equation_formater(self.as_dict())
+        return self.label
+
+    def __repr__(self):
+        return self.label
 
     def __eq__(self, other: BaseSet):
         if not isinstance(other, BaseSet):
@@ -98,13 +101,13 @@ class BaseSet:
 
         return True
 
-    def __add__(self, other: BaseSet) -> BaseSet:
+    def __mul__(self, other: BaseSet) -> BaseSet:
         if not isinstance(other, BaseSet):
             raise TypeError("Can only add 'BaseSet' with 'BaseSet'.")
 
         return BaseSet(**{base: getattr(self, base) + getattr(other, base) for base in self.__slots__})
 
-    def __iadd__(self, other: BaseSet) -> BaseSet:
+    def __imul__(self, other: BaseSet) -> BaseSet:
         if not isinstance(other, BaseSet):
             raise TypeError("Can only add 'BaseSet' with 'BaseSet'.")
 
@@ -112,15 +115,15 @@ class BaseSet:
             setattr(self, base, getattr(self, base) + getattr(other, base))
         return self
 
-    __radd__ = __add__
+    __rmul__ = __mul__
 
-    def __sub__(self, other):
+    def __truediv__(self, other):
         if not isinstance(other, BaseSet):
             raise TypeError("Can only subtract 'BaseSet' with 'BaseSet'.")
 
         return BaseSet(**{base: getattr(self, base) - getattr(other, base) for base in self.__slots__})
 
-    def __isub__(self, other):
+    def __itruediv__(self, other):
         if not isinstance(other, BaseSet):
             raise TypeError("Can only subtract 'BaseSet' with 'BaseSet'.")
 
@@ -128,7 +131,7 @@ class BaseSet:
             setattr(self, base, getattr(self, base) - getattr(other, base))
         return self
 
-    def __rsub__(self, other):
+    def __rtruediv__(self, other):
         if not isinstance(other, BaseSet):
             raise TypeError("Can only subtract 'BaseSet' with 'BaseSet'.")
 
@@ -149,8 +152,16 @@ class BaseSet:
             raise TypeError("Power must be a 'int' or 'float'.")
 
     @property
+    def label(self) -> str:
+        return equation_formater({k.label: v for k, v in self.as_dict().items()})
+
+    @property
+    def abbr(self) -> str:
+        return equation_formater({k.abbr: v for k, v in self.as_dict().items()})
+
+    @property
     def dimensionality(self) -> Dimension:
-        return Dimension(**{k.dimension.name: v for k, v in self.as_dict().items()})
+        return Dimension(**{k.dimension.label: v for k, v in self.as_dict().items()})
 
     @property
     def dimensionless(self) -> bool:

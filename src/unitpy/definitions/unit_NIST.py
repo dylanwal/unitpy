@@ -26,7 +26,7 @@ units_NIST = {
     },
 
     "angle": {
-        "base": derived_quantities["radian"],
+        "base": derived_quantities["radian"].base_unit,
         "arcminute": {
             "multiplier": 2.908_882e-4,
             "abbr": "arcmin",
@@ -81,7 +81,7 @@ units_NIST = {
     },
 
     "energy": {
-        "base": derived_quantities["joule"],
+        "base": derived_quantities["joule"].base_unit,
         "british_thermal_unit_IT": {  # IT : International Table
             "multiplier": 1.055_056e3,
             "abbr": "Btu_IT"
@@ -89,7 +89,7 @@ units_NIST = {
         "british_thermal_unit_th": {  # th : thermochemical
             "multiplier": 1.054_350e3,
             "abbr": "Btu",
-            "additional_labels": ["Btu_th", "british_thermal_unit"]
+            "additional_labels": ["Btu_th", "british_thermal_unit", "BTU", "btu"]
         },
         "calorie_IT": {  # IT : International Table
             "multiplier": 4.1868,
@@ -131,7 +131,7 @@ units_NIST = {
     },
 
     "force": {
-        "base": derived_quantities["newton"],
+        "base": derived_quantities["newton"].base_unit,
         "dyne": {
             "multiplier": 1e-5,
             "abbr": "dyn"
@@ -250,7 +250,7 @@ units_NIST = {
     },
 
     "illuminance": {
-        "base": derived_quantities["lux"],
+        "base": derived_quantities["lux"].base_unit,
         "footcandle": {
             "multiplier": 1.076_391e1,
             "abbr": None
@@ -263,7 +263,7 @@ units_NIST = {
     },
 
     "luminance": {
-        "base": derived_quantities["lux"],
+        "base": derived_quantities["lux"].base_unit,
         "footlambert": {
             "multiplier": 3.426_259,
             "abbr": None
@@ -348,7 +348,7 @@ units_NIST = {
     },
 
     "power": {
-        "base": derived_quantities["watt"],
+        "base": derived_quantities["watt"].base_unit,
         "horsepower": {
             "multiplier": 7.46e2,
             "abbr": "hp"
@@ -376,7 +376,7 @@ units_NIST = {
     },
 
     "stress": {
-        "base": derived_quantities["pascal"],
+        "base": derived_quantities["pascal"].base_unit,
         "atmosphere": {
             "multiplier": 1.013_25e5,
             "abbr": "atm"

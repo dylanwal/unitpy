@@ -14,7 +14,7 @@ from unitpy.utils.equation_formating import equation_formater
 def get_base_unit(unit: dict[Entry, int | float]) -> BaseSet:
     base = BaseSet()
     for k, v in unit.items():
-        base += k.base_unit**v
+        base *= k.base_unit**v
     return base
 
 
@@ -30,7 +30,6 @@ def get_unit_from_base(base_set: BaseSet) -> dict[Entry, int | float]:
 
 
 class Unit:
-
     _ledger = ledger
 
     def __new__(cls, unit: str | BaseSet = None):
@@ -62,10 +61,10 @@ class Unit:
         #     self._base_unit = unit
 
     def __str__(self):
-        return equation_formater(self._unit)
+        return self.label
 
     def __repr__(self):
-        return self.__str__()
+        return self.label
 
     def __hash__(self) -> int:
         return self._base_unit.__hash__()
@@ -82,8 +81,8 @@ class Unit:
         unit._base_unit = self._base_unit
         return unit
 
-     # def __getattr__(self, item):
-        #     return self.Unit(item)
+    # def __getattr__(self, item):
+    #     return self.Unit(item)
 
     def __eq__(self, other: Unit) -> bool:
         """
@@ -137,7 +136,7 @@ class Unit:
                 unit._unit[k] = self._unit.get(k, 0) - other._unit.get(k, 0)
             return unit
         elif isinstance(other, int) or isinstance(other, float):
-            return Quantity(1/other, self)
+            return Quantity(1 / other, self)
         raise TypeError("Can only divide 'Unit' by 'Unit'")
 
     def __itruediv__(self, other: Unit) -> Unit:
@@ -155,14 +154,14 @@ class Unit:
                 unit._unit[k] = other._unit.get(k, 0) - self._unit.get(k, 0)
             return unit
         elif isinstance(other, int) or isinstance(other, float):
-            return Quantity(other, self**-1)
+            return Quantity(other, self ** -1)
         raise TypeError("Can only divide 'Unit' by 'Unit'")
 
     def __pow__(self, power: int | float) -> Unit:
         if isinstance(power, int) or isinstance(power, float):
             unit = Unit()
             for k in self._unit:
-                unit._unit[k] = self._unit[k]*power
+                unit._unit[k] = self._unit[k] * power
             return unit
 
         raise TypeError("Power must be a 'int' or 'float'.")
@@ -170,15 +169,23 @@ class Unit:
     def __ipow__(self, power: int | float) -> Unit:
         if isinstance(power, int) or isinstance(power, float):
             for k in self._unit:
-                self._unit[k] = self._unit[k]*power
+                self._unit[k] = self._unit[k] * power
             return self
 
         raise TypeError("Power must be a 'int' or 'float'.")
 
     @property
+    def label(self) -> str:
+        return equation_formater({k.label: v for k, v in self._unit.items()})
+
+    @property
+    def abbr(self) -> str:
+        return equation_formater({k.abbr: v for k, v in self._unit.items()})
+
+    @property
     def multiplier(self) -> int | float:
         if self._multiplier is None:
-            self._multiplier = sum([k.multiplier**v for k, v in self._unit.items()])
+            self._multiplier = math.prod([k.multiplier ** v for k, v in self._unit.items()])
 
         return self._multiplier
 
@@ -257,12 +264,12 @@ class Quantity:
         return self.__class__(copy.deepcopy(self._base_value), self._unit)
 
     def _comparison_check(self, other: Quantity):
-        if not isinstance(other, Quantity) or self.base_unit is not other.base_unit:
+        if not isinstance(other, Quantity) or self.base_unit != other.base_unit:
             raise ValueError("'Quantity' comparison can only happen between quantities with same units.")
 
     def __eq__(self, other: Quantity) -> bool:
         self._comparison_check(other)
-        return self.base_unit is other.base_unit and self.base_value == other.base_value
+        return self.base_value == other.base_value
 
     def __lt__(self, other: Quantity) -> bool:
         self._comparison_check(other)
@@ -383,7 +390,7 @@ class Quantity:
 
     def __pow__(self, power: int | float) -> Quantity:
         if isinstance(power, int) or isinstance(power, float):
-            return Quantity(self.value**power, self.unit)
+            return Quantity(self.value ** power, self.unit)
         else:
             raise TypeError("Power must be a 'int' or 'float'.")
 
@@ -466,3 +473,8 @@ class Quantity:
             raise ValueError("Units are not compatible.")
 
         return Quantity(unit.from_base_value(self._base_value), unit)
+
+    def is_close(self, other: Quantity, rel_tol: int | float = 1e-9, abs_tol: int | float = 0) -> bool:
+        """ Return True if the other quantity is close to this quantity and False otherwise. """
+        self._comparison_check(other)
+        return math.isclose(self.base_value, other.base_value, rel_tol=rel_tol, abs_tol=abs_tol)

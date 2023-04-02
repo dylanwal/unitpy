@@ -6,6 +6,7 @@ class ConfigUnit:
         self.integer_format_denominator_parenthesis = True
         self.abbr = True  # false is full word
         self.multiplication_seperator = " "  #  " " or " * "
+        self.division_seperator = " / "  #  " " or " * "
 
 
 class Config:
