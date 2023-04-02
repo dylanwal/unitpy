@@ -1,9 +1,15 @@
 from __future__ import annotations
 
+import itertools
+
+from unitpy.definitions.constants import constants
 import unitpy.definitions.dimensions as dim_
 import unitpy.definitions.prefix as prefix_
-from unitpy.definitions.constants import constants
-from unitpy.definitions.entry import Entry, bases, derived_quantities
+from unitpy.definitions.entry import Entry
+
+import unitpy.definitions.unit_base as bases
+import unitpy.definitions.unit_derived as unit_derived
+import unitpy.definitions.unit_NIST as unit_NIST
 
 
 class Ledger:
@@ -11,22 +17,31 @@ class Ledger:
     dimensions = dim_.dimensions
     prefixes = prefix_.prefixes
     constants = constants
-    bases = bases
+    bases = bases.bases
     classes = dim_.classes
 
     def __init__(self):
         self.units: list[Entry] = []
         self._lookup = {}
+        self._symbols = set()
 
-    # def __getattr__(self, item):
-    #     return self.Unit(item)
+    def __str__(self):
+        return f"Ledger(units: {len(self.units)}, symbols: {len(self._symbols)})"
 
-    def get_unit(self, unit: str) -> Entry | None:
+    __repr__ = __str__
+
+    @property
+    def symbols(self) -> set[str, ...]:
+        if len(self._symbols) == 0:
+            self._symbols = set(self._lookup.keys())
+
+        return self._symbols
+
+    def get_entry(self, unit: str) -> Entry | None:
         if unit in self._lookup:
             return self._lookup[unit]
 
         return None
-        # raise errors.UndefinedUnitError(f"{unit} is not a recognized unit.")
 
     def unit_in_ledger(self, unit: str) -> bool:
         return unit in self._lookup
@@ -34,99 +49,126 @@ class Ledger:
     def add_unit(self, entry: Entry):
         self.units.append(entry)
 
-        if entry.class_ not in self.classes:
-            self.classes[entry.class_] = self.dimensions
-
         if entry.label in self._lookup:
-            raise ValueError(f"duplicate ledger entry.\nexisting: {self._lookup[entry.label]} \nsecond one: {entry}")
+            raise ValueError(f"Duplicate ledger entry."
+                             f"\nexisting: {repr(self._lookup[entry.label])} "
+                             f"\nsecond one: {repr(entry)}")
         self._lookup[entry.label] = entry
 
         if entry.abbr is not None:
             if entry.abbr in self._lookup:
-                raise ValueError(f"duplicate ledger entry.\nexisting: {self._lookup[entry.abbr]} \nsecond one: {entry}")
+                raise ValueError(f"Duplicate ledger entry."
+                                 f"\nexisting: {repr(self._lookup[entry.abbr])} "
+                                 f"\nsecond one: {repr(entry)}")
             self._lookup[entry.abbr] = entry
 
         # TODO make other combinations
 
 
+ledger = Ledger()
+
+
 def add_bases():
-    for base in ledger.bases:
+    for base in bases.bases.values():
+        ledger.add_unit(
+            Entry(
+                    label=base.label,
+                    abbr=base.abbr,
+                    base_unit=bases.BaseSet(**{base.label: 1}),
+                    multiplier=1,
+                )
+        )
+
         if base.label == "kilogram":
             add_kilogram_and_prefix(base)
-            continue
-
-        ledger.add_unit(base)
-        for pre in ledger.prefixes.values():
-            add_with_prefix(base, pre)
+        else:
+            for pre in ledger.prefixes.values():
+                add_with_prefix(base, pre)
 
 
-def add_kilogram_and_prefix(base):
-    ledger.add_unit(base)
+def add_kilogram_and_prefix(base: bases.BaseUnit):
     for pre in ledger.prefixes.values():
         if pre.name == "kilo":
             ledger.add_unit(
                 Entry(
                     label="gram",
                     abbr="g",
-                    dim=base.dim,
-                    func=lambda x: x,
-                    class_=base.class_
+                    base_unit=bases.BaseSet(**{base.label: 1}),
+                    multiplier=1,
+                    prefix=pre,
                 )
             )
         add_with_prefix(base, pre)
 
 
-def add_with_prefix(base, pre):
+def add_with_prefix(base: bases.BaseUnit, pre: prefix_.Prefix):
     ledger.add_unit(
         Entry(
             label=pre.name + base.label,
             abbr=pre.abbr[0] + base.abbr,
-            dim=base.dim,
+            base_unit=bases.BaseSet(**{base.label: 1}),
+            multiplier=pre.multiplier,
             prefix=pre,
-            func=lambda x: x * pre.multiplier,
-            class_=base.class_
-        )  # TODO add additional abbr, label combinations
+        )
     )
 
 
 def add_derived_quantities():
-    for base in derived_quantities:
+    for base in unit_derived.derived_quantities.values():
         ledger.add_unit(base)
         for pre in ledger.prefixes.values():
-            add_with_prefix(base, pre)
+            ledger.add_unit(
+                Entry(
+                    label=pre.name + base.label,
+                    abbr=pre.abbr[0] + base.abbr,
+                    base_unit=base.base_unit,
+                    multiplier=pre.multiplier,
+                    prefix=pre,
+                    additional_labels=get_additional_labels(pre.abbr, base.additional_labels)
+                )
+            )
 
 
 def add_core():
-    groups_names = [item for item in dir(core) if not item.startswith("__")]
     # for group in groups_names:
-    name = "volume"
-    group = getattr(core, name)
+    for group in unit_NIST.units_NIST.values():
+        # base
+        base_unit = group.pop("base")
 
-    # base
-    base = group.pop("base")
-    base_unit = Unit(base)
-
-    for entry in group:
-        additional_labels = None
-        abbr = group[entry]['abbr']
-        if abbr is not None:
-            if len(abbr) > 1:
-                additional_labels = abbr[1:]
-            abbr = abbr[0]
-
-        ledger.add_unit(
-            Entry(
-                label=entry,
-                abbr=abbr,
-                dim=base_unit.dim,
-                base_unit=base_unit,
-                func=group[entry]["ratio"],
-                additional_labels=additional_labels,
-                class_=name
+        for label, value in group.items():
+            ledger.add_unit(
+                Entry(
+                    label=label,
+                    abbr=value["abbr"],
+                    base_unit=base_unit,
+                    multiplier=value["multiplier"],
+                    offset=value["offset"] if "offset" in value else None,
+                    additional_labels=value["additional_labels"] if "additional_labels" in value else [],
+                )
             )
-        )
+            if "prefix" in value and value["prefix"] is True:
+                for pre in ledger.prefixes.values():
+                    ledger.add_unit(
+                        Entry(
+                            label=pre.name + label,
+                            abbr=pre.abbr[0] + value["abbr"],
+                            base_unit=base_unit,
+                            multiplier=value["multiplier"] * pre.multiplier,
+                            prefix=pre,
+                            additional_labels=get_additional_labels(pre.abbr, value["additional_labels"] if "additional_labels" in value else []),
+                        )
+                    )
 
 
-ledger = Ledger()
+def get_additional_labels(pre: list[str, ...], labels: list[str, ...]) -> list:
+    if labels is None:
+        return []
+    if len(labels) < 1:
+        return labels
+
+    return ["".join(i) for i in itertools.product(pre, labels)]
+
+
 add_bases()
 add_derived_quantities()
+add_core()

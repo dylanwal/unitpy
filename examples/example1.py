@@ -2,6 +2,8 @@
 import unitpy
 
 print(unitpy.ledger)
-l = 1 * unitpy.U("m")
-
+a = 2 * unitpy.U("ml")
 print(a)
+
+b = a.to("cm")
+print(b)

@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+
 class Constant:
     """
 
@@ -9,6 +12,12 @@ class Constant:
         self.unit = unit
         self.abbr = abbr
         self.description = description
+
+    def __str__(self):
+        return f"{self.name}: {self.value} {self.unit}"
+
+    def __repr__(self):
+        return f"Constant({self.name}: {self.value} {self.unit})"
 
     def __add__(self, other):
         return self.value + other

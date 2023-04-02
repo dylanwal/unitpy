@@ -1,26 +1,52 @@
 from __future__ import annotations
 
+import itertools
 import math
 import copy
 
 from unitpy.definitions.dimensions import Dimension
+from unitpy.definitions.unit_base import BaseSet
 from unitpy.definitions.entry import Entry
+from unitpy.definitions.ledger import ledger
 from unitpy.utils.parsing import parse_unit, parse_quantity
 from unitpy.utils.equation_formating import equation_formater
 
 
-def get_dimensionality(unit_entries: dict[Entry | str, int | float]) -> Dimension:
-    return Dimension({entry.dim: num for entry, num in unit_entries.items()})
+def get_base_unit(unit: dict[Entry, int | float]) -> BaseSet:
+    base = BaseSet()
+    for k, v in unit.items():
+        base += k.base_unit**v
+    return base
+
+
+def get_unit_from_base(base_set: BaseSet) -> dict[Entry, int | float]:
+    dict_ = dict()
+
+    for base in base_set.__slots__:
+        value = getattr(base_set, base)
+        if value != 0:
+            dict_[ledger.get_entry(base)] = value
+
+    return dict_
 
 
 class Unit:
-    def __init__(self, unit_str: str = None):
-        self._unit: dict[Entry | str, int | float] | None = None
-        self._base_unit: dict[Entry | str, int | float] | None = None
 
-        if unit_str is not None:
-            self._unit = parse_unit(unit_str)
+    _ledger = ledger
+
+    def __init__(self, unit: str | BaseSet = None):
+        self._unit: dict[Entry, int | float] | None = None
+        self._base_unit: BaseSet | None = None
+        self._multiplier: int | float | None = None
+        self._offset: int | float | None = None
+
+        if isinstance(unit, str):
+            dict_ = parse_unit(unit, self._ledger.symbols)
+            self._unit = {ledger.get_entry(k): v for k, v in dict_.items()}
             self._base_unit = get_base_unit(self._unit)
+        elif isinstance(unit, BaseSet):
+            self._unit = get_unit_from_base(unit)
+            self._base_unit = unit
 
     def __str__(self):
         return equation_formater(self._unit)
@@ -43,15 +69,8 @@ class Unit:
         unit._base_unit = self._base_unit
         return unit
 
-    def __contains__(self, other: Unit) -> bool:
-        if isinstance(other, Unit):
-            return False
-
-        for entry in self._base_unit:
-            if entry not in other._base_unit:
-                return False
-
-        return True
+     # def __getattr__(self, item):
+        #     return self.Unit(item)
 
     def __eq__(self, other: Unit) -> bool:
         """
@@ -78,76 +97,123 @@ class Unit:
     __isub__ = __add__
     __rsub__ = __add__
 
-    # def __mul__(self, other: Unit) -> Unit:
-    #     if isinstance(other, Unit):
-    #         return Unit()
-    #     else:
-    #         return Unit(f"{self.name}*{other}", self.factor * other)
-    #
-    # def __imul__(self, other):
-    #     pass
-    #
-    #  __rmul__ = __mul__
-    #
-    # def __truediv__(self, other):
-    #     if isinstance(other, Unit):
-    #         return Unit(f"{self.name}/{other.name}", self.factor / other.factor)
-    #     else:
-    #         return Unit(f"{self.name}/{other}", self.factor / other)
-    #
-    # def __itruediv__(self, other: int | float | Quantity) -> Quantity:
-    #     pass
-    #
-    # def __rtruediv__(self, other):
-    #     pass
-    #
-    # def __pow__(self, power: int | float) -> Unit:
-    #     if isinstance(power, int) or isinstance(power, float):
-    #         unit = Unit()
-    #         unit._unit = self._unit**power
-    #         return unit
-    #     else:
-    #         raise TypeError("Power must be a 'int' or 'float'.")
-    #
-    # def __ipow__(self,power):
-    #     pass
+    def __mul__(self, other: int | float | Unit) -> Unit | Quantity:
+        if isinstance(other, Unit):
+            unit = Unit()
+            for k in set(itertools.chain(self._unit.keys(), other._unit.keys())):
+                unit._unit[k] = self._unit.get(k, 0) + other._unit.get(k, 0)
+            return unit
+        elif isinstance(other, int) or isinstance(other, float):
+            return Quantity(other, self)
+        raise TypeError("Can only multiply Unit by Unit")
+
+    def __imul__(self, other: Unit) -> Unit:
+        if not isinstance(other, Unit):
+            raise TypeError("Can only multiply Unit by Unit")
+
+        for k in set(itertools.chain(self._unit.keys(), other._unit.keys())):
+            self._unit[k] = self._unit.get(k, 0) + other._unit.get(k, 0)
+        return self
+
+    __rmul__ = __mul__
+
+    def __truediv__(self, other: int | float | Unit) -> Unit | Quantity:
+        if isinstance(other, Unit):
+            unit = Unit()
+            for k in set(itertools.chain(self._unit.keys(), other._unit.keys())):
+                unit._unit[k] = self._unit.get(k, 0) - other._unit.get(k, 0)
+            return unit
+        elif isinstance(other, int) or isinstance(other, float):
+            return Quantity(1/other, self)
+        raise TypeError("Can only divide 'Unit' by 'Unit'")
+
+    def __itruediv__(self, other: Unit) -> Unit:
+        if not isinstance(other, Unit):
+            raise TypeError("Can only divide 'Unit' by 'Unit'")
+
+        for k in set(itertools.chain(self._unit.keys(), other._unit.keys())):
+            self._unit[k] = self._unit.get(k, 0) - other._unit.get(k, 0)
+        return self
+
+    def __rtruediv__(self, other: int | float | Unit) -> Unit | Quantity:
+        if isinstance(other, Unit):
+            unit = Unit()
+            for k in set(itertools.chain(self._unit.keys(), other._unit.keys())):
+                unit._unit[k] = other._unit.get(k, 0) - self._unit.get(k, 0)
+            return unit
+        elif isinstance(other, int) or isinstance(other, float):
+            return Quantity(other, self**-1)
+        raise TypeError("Can only divide 'Unit' by 'Unit'")
+
+    def __pow__(self, power: int | float) -> Unit:
+        if isinstance(power, int) or isinstance(power, float):
+            unit = Unit()
+            for k in self._unit:
+                unit._unit[k] = self._unit[k]**power
+            return unit
+
+        raise TypeError("Power must be a 'int' or 'float'.")
+
+    def __ipow__(self, power: int | float) -> Unit:
+        if isinstance(power, int) or isinstance(power, float):
+            for k in self._unit:
+                self._unit[k] = self._unit[k]**power
+            return self
+
+        raise TypeError("Power must be a 'int' or 'float'.")
+
+    @property
+    def multiplier(self) -> int | float:
+        if self._multiplier is None:
+            self._multiplier = sum([k.multiplier**v for k, v in self._unit.items()])
+
+        return self._multiplier
+
+    @property
+    def offset(self) -> int | float:
+        if self._offset is None:
+            self._offset = sum([k.offset**v for k, v in self._unit.items()])
+
+        return self._offset
 
     @property
     def dimensionality(self) -> Dimension:
-        return self._base_unit.dimensionality
+        return self.base_unit.dimensionality
 
     @property
     def dim(self) -> Dimension:
-        return self._base_unit.dimensionality
+        return self.base_unit.dimensionality
 
     @property
     def dimensionless(self) -> bool:
-        if self._base_unit.dimensionaless:
+        if self.base_unit.dimensionless:
             return False
         return True
 
     @property
-    def base_unit(self) -> Unit:
-        unit = Unit()
-        unit._unit = self._base_unit
-        unit._base_unit = self._base_unit
-        return unit
+    def base_unit(self) -> BaseSet:
+        if self._base_unit is None:
+            self._base_unit = get_base_unit(self._unit)
 
-    def from_base_value(self, value: int | float) -> int | float:
-        return self._unit.multiplier * value + self._unit.offset
+        return self._base_unit
 
     def to_base_value(self, value: int | float) -> int | float:
-        return value / self._unit.multiplier - self._unit.offset
+        return self.multiplier * value + self.offset
+
+    def from_base_value(self, value: int | float) -> int | float:
+        return value / self.multiplier - self.offset
 
 
 ## Quantity ## noqa
 #######################################################################################################################
 #######################################################################################################################
 class Quantity:
+    _ledger = ledger
 
     def __init__(self, value: str | int | float, unit: Unit | str = None):
         if isinstance(value, str):
-            value, unit = parse_quantity(value)
+            value, unit = parse_quantity(value, self._ledger.symbols)
+            unit = {ledger.get_entry(k): v for k, v in unit.items()}
         if isinstance(unit, str):
             unit = Unit(unit)
         self._unit = unit
@@ -358,7 +424,7 @@ class Quantity:
         return self._base_value
 
     @property
-    def base_unit(self) -> Unit:
+    def base_unit(self) -> BaseSet:
         return self._unit.base_unit
 
     @property
@@ -372,3 +438,12 @@ class Quantity:
     @property
     def dimensionless(self) -> bool:
         return self.unit.dimensionless
+
+    def to(self, unit: str | Unit) -> Quantity:
+        if isinstance(unit, str):
+            unit = Unit(unit)
+
+        if unit != unit:
+            raise ValueError("Units are not compatible.")
+
+        return Quantity(unit.from_base_value(self._base_value), unit)
