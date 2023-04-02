@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from unitpy.definitions.dimensions import BaseDimension, Dimension, dimensions
 from unitpy.utils.equation_formating import equation_formater
-from unitpy.utils.parsing import parse_base
 
 
 class BaseUnit:
@@ -66,7 +65,7 @@ bases = {
 
 class BaseSet:
     __slots__ = ("meter", "second", "mole", "kelvin", "candela", "kilogram", "ampere")  # DON'T change order
-    bases = bases
+    _bases = bases
 
     def __init__(self,
                  meter: int | float = 0,
@@ -88,6 +87,16 @@ class BaseSet:
 
     def __str__(self):
         return equation_formater(self.as_dict())
+
+    def __eq__(self, other: BaseSet):
+        if not isinstance(other, BaseSet):
+            raise TypeError("Equality can only be done between BaseSets.")
+
+        for base in self.__slots__:
+            if getattr(self, base) != getattr(other, base):
+                return False
+
+        return True
 
     def __add__(self, other: BaseSet) -> BaseSet:
         if not isinstance(other, BaseSet):
@@ -127,29 +136,29 @@ class BaseSet:
 
     def __pow__(self, power: int | float) -> BaseSet:
         if isinstance(power, int) or isinstance(power, float):
-            return BaseSet(**{base: getattr(self, base) ** power for base in self.__slots__})
+            return BaseSet(**{base: getattr(self, base) * power for base in self.__slots__})
         else:
             raise TypeError("Power must be a 'int' or 'float'.")
 
     def __ipow__(self, power: int | float) -> BaseSet:
         if isinstance(power, int) or isinstance(power, float):
             for base in self.__slots__:
-                setattr(self, base, getattr(self, base) ** power)
+                setattr(self, base, getattr(self, base) * power)
             return self
         else:
             raise TypeError("Power must be a 'int' or 'float'.")
 
     @property
     def dimensionality(self) -> Dimension:
-        return Dimension(**{k.dimension.name: v for k, v in self.as_dict()})
+        return Dimension(**{k.dimension.name: v for k, v in self.as_dict().items()})
 
     @property
     def dimensionless(self) -> bool:
         return self.dimensionality.dimensionless
 
     def as_dict(self) -> dict[BaseUnit, int | float]:
-        return {self.bases[attr_name]: getattr(self, attr_name) for attr_name in self.__slots__}
+        return {self._bases[attr_name]: getattr(self, attr_name) for attr_name in self.__slots__}
 
-    @classmethod
-    def from_string(cls, unit: str) -> BaseSet:
-        return BaseSet(**parse_base(unit, set(BaseSet.__slots__)))
+    # @classmethod
+    # def from_string(cls, unit: str) -> BaseSet:
+    #     return BaseSet(**parse_base(unit, set(BaseSet.__slots__)))

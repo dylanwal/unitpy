@@ -8,7 +8,6 @@ from unitpy.definitions.dimensions import Dimension
 from unitpy.definitions.unit_base import BaseSet
 from unitpy.definitions.entry import Entry
 from unitpy.definitions.ledger import ledger
-from unitpy.utils.parsing import parse_unit, parse_quantity
 from unitpy.utils.equation_formating import equation_formater
 
 
@@ -34,19 +33,33 @@ class Unit:
 
     _ledger = ledger
 
-    def __init__(self, unit: str | BaseSet = None):
-        self._unit: dict[Entry, int | float] | None = None
+    def __new__(cls, unit: str | BaseSet = None):
+        if isinstance(unit, str):
+            from unitpy.utils.parsing import parse_unit
+            a = parse_unit(unit)
+            return a
+        elif isinstance(unit, BaseSet):
+            return get_unit_from_base(unit)
+
+        return super().__new__(cls)
+
+    def __init__(self, unit: str | dict[Entry, int | float] = None):
+        if hasattr(self, "_unit"):
+            return
+
+        self._unit: dict[Entry, int | float] | None = unit if unit is not None else dict()
         self._base_unit: BaseSet | None = None
         self._multiplier: int | float | None = None
         self._offset: int | float | None = None
 
-        if isinstance(unit, str):
-            dict_ = parse_unit(unit, self._ledger.symbols)
-            self._unit = {ledger.get_entry(k): v for k, v in dict_.items()}
-            self._base_unit = get_base_unit(self._unit)
-        elif isinstance(unit, BaseSet):
-            self._unit = get_unit_from_base(unit)
-            self._base_unit = unit
+        # if isinstance(unit, str):
+        #     from unitpy.utils.parsing import parse_unit
+        #     dict_ = parse_unit(unit, self._ledger.symbols)
+        #     self._unit = {ledger.get_entry(k): v for k, v in dict_.items()}
+        #     self._base_unit = get_base_unit(self._unit)
+        # elif isinstance(unit, BaseSet):
+        #     self._unit = get_unit_from_base(unit)
+        #     self._base_unit = unit
 
     def __str__(self):
         return equation_formater(self._unit)
@@ -79,7 +92,7 @@ class Unit:
         if not isinstance(other, Unit):
             raise ValueError("'Unit' equality can only be done between 'Unit' objects")
 
-        return self._base_unit == self._base_unit
+        return self.base_unit == other.base_unit
 
     def __lt__(self, other):
         raise ArithmeticError("Units can't be compared.")
@@ -149,7 +162,7 @@ class Unit:
         if isinstance(power, int) or isinstance(power, float):
             unit = Unit()
             for k in self._unit:
-                unit._unit[k] = self._unit[k]**power
+                unit._unit[k] = self._unit[k]*power
             return unit
 
         raise TypeError("Power must be a 'int' or 'float'.")
@@ -157,7 +170,7 @@ class Unit:
     def __ipow__(self, power: int | float) -> Unit:
         if isinstance(power, int) or isinstance(power, float):
             for k in self._unit:
-                self._unit[k] = self._unit[k]**power
+                self._unit[k] = self._unit[k]*power
             return self
 
         raise TypeError("Power must be a 'int' or 'float'.")
@@ -172,7 +185,7 @@ class Unit:
     @property
     def offset(self) -> int | float:
         if self._offset is None:
-            self._offset = sum([k.offset**v for k, v in self._unit.items()])
+            self._offset = sum([k.offset for k, v in self._unit.items()])
 
         return self._offset
 
@@ -210,10 +223,16 @@ class Unit:
 class Quantity:
     _ledger = ledger
 
-    def __init__(self, value: str | int | float, unit: Unit | str = None):
+    def __new__(cls, value: str | int | float, unit: Unit | str = None):
         if isinstance(value, str):
-            value, unit = parse_quantity(value, self._ledger.symbols)
-            unit = {ledger.get_entry(k): v for k, v in unit.items()}
+            from unitpy.utils.parsing import parse_quantity
+            return parse_quantity(value)
+
+        return super().__new__(cls)
+
+    def __init__(self, value: str | int | float, unit: Unit | str = None):
+        if hasattr(self, "_unit"):
+            return
         if isinstance(unit, str):
             unit = Unit(unit)
         self._unit = unit
@@ -443,7 +462,7 @@ class Quantity:
         if isinstance(unit, str):
             unit = Unit(unit)
 
-        if unit != unit:
+        if self.unit != unit:
             raise ValueError("Units are not compatible.")
 
         return Quantity(unit.from_base_value(self._base_value), unit)

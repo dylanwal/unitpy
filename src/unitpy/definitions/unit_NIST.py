@@ -195,7 +195,7 @@ units_NIST = {
         },
         "link": {
             "multiplier": 0.201_168_4,
-            "abbr": "l",
+            "abbr": None,  # "l" conflict with liter
             "additional_labels": ["li"]
         },
         "micron": {
@@ -565,7 +565,7 @@ units_NIST = {
         "liter": {  # US : United States
             "multiplier": 1e-3,
             "abbr": "L",
-            "prefix": True
+            "additional_labels": ["l"]
         },
         "ounce_fluid_UK": {  # UK : Canadian and U.K. (Imperial)
             "multiplier": 2.841_306e-5,

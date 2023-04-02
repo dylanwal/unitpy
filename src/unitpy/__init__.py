@@ -1,12 +1,10 @@
 import pkg_resources
 
 from unitpy.definitions.ledger import ledger
-from unitpy.core import Unit
-# from src.unitpy.quantity import Quantity
-# from src.unitpy.measurement import Measurement
+from unitpy.core import Unit, Quantity
 
 U = Unit
-# Q = Quantity
+Q = Quantity
 # M = Measurement
 #
 # __all__ = ("ledger", "Unit", "Quantity", "Measurement", "U", "Q", "M", "u")

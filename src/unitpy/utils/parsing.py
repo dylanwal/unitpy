@@ -1,4 +1,9 @@
+from __future__ import annotations
+
 import re
+
+from unitpy.definitions.ledger import ledger
+from unitpy.core import Unit, Quantity
 
 
 def apply_multiplier(dict_, multiplier: int | float):
@@ -15,28 +20,34 @@ def add_to_unit_dict(dict1, dict2):
             dict1[k] = dict2[k]
 
 
-def parse_quantity(quantity, symbols: set[str, ...]) -> tuple[int | float, dict[str, float | int]]:
-    result = parse_unit(quantity, symbols)
-    return result.pop("number"), result
+def parse_quantity(quantity: str) -> Quantity:
+    parser = Parser(quantity)
+    result = parser.parse()
+    if not isinstance(result, Quantity):
+        raise ValueError(f"Provided string is not a quantity: {quantity}")
+    return result
 
 
-def parse_unit(unit: str, symbols: set[str, ...]) -> dict[str, float | int]:
-    parser = Parser(unit, symbols)
-    return parser.parse()
+def parse_unit(unit: str) -> Unit:
+    parser = Parser(unit)
+    result = parser.parse()
+    if not isinstance(result, Unit):
+        raise ValueError(f"Provided string is not a quantity: {unit}")
+    return result
 
 
 def parse_base(unit: str, symbols: set[str, ...]) -> dict[str, float | int]:
-    parser = Parser(unit, symbols)
-    return parser.parse()
+    pass
+    # parser = Parser(unit, symbols)
+    # return parser.parse()
 
 
 class Parser:
-    def __init__(self, expression: str, symbols: set[str, ...]):
+    def __init__(self, expression: str):
         self.expression = expression
-        self.symbols = symbols
         self.pos = 0
 
-    def parse(self) -> dict[str, float | int]:
+    def parse(self) -> int | float | Unit | Quantity:
         self.syntax_fix()
         result = self.parse_expression()
         if self.pos != len(self.expression):
@@ -46,13 +57,14 @@ class Parser:
     def syntax_fix(self):
         self.expression = self.expression.replace("   ", " ")
         self.expression = self.expression.replace("  ", " ")
-        self.expression = self.expression.replace(" ", "*")
         self.expression = self.expression.replace("**", "^")
+        self.expression = re.sub(r'(?<=[a-zA-Z0-9]) +(?=[a-zA-Z0-9])', "*", self.expression)
+        self.expression = self.expression.replace(" ", "")
         # self.expression = self.expression.replace(" per ", "/")
         # self.expression = self.expression.replace("squared", "^2")
         # self.expression = self.expression.replace("cubed", "^3")
 
-    def parse_expression(self) -> dict[str, float | int]:
+    def parse_expression(self) -> int | float | Unit | Quantity:
         result = self.parse_term()
         while True:
             if self.consume('+'):
@@ -62,102 +74,74 @@ class Parser:
             else:
                 return result
 
-    def parse_term(self) -> dict[str, float | int]:
+    def parse_term(self) -> int | float | Unit | Quantity:
         result = self.parse_factor()
         while True:
             if self.consume('*'):
-                result_ = self.parse_factor()
-                add_to_unit_dict(result, result_)
+                result *= self.parse_factor()
             elif self.consume('/'):
-                result_ = self.parse_factor()
-                apply_multiplier(result_, -1)
-                add_to_unit_dict(result, result_)
+                result /= self.parse_factor()
             else:
                 return result
 
-    def parse_factor(self) -> dict[str, float | int]:
+    def parse_factor(self) -> int | float | Unit | Quantity:
         result = self.parse_base()
 
         while True:
             if self.consume('^'):
                 super_script = self.parse_base()
-                if "number" not in super_script and len(super_script.keys()) != 1:
-                    raise ValueError("power must be numbers.")
+                if not (isinstance(super_script, int) or isinstance(super_script, float)):
+                    raise ValueError("Power must be numbers.")
 
-                apply_multiplier(result, super_script["number"])
+                result = result**super_script
             else:
                 return result
 
-    def parse_base(self) -> dict[str, float | int]:
+    def parse_base(self) -> int | float | Unit | Quantity:
         if self.consume('('):
             result = self.parse_expression()
             self.expect(')')
-        elif self.is_number():
-            num = float(self.consume_regex(r'\d+(\.\d*)?'))
-            if num.is_integer():
-                num = int(num)
-            result = dict(number=num)
-        elif self.is_variable():
-            result = {self.consume_regex(r'[a-zA-Z]+'): 1}
-        else:
-            raise ValueError('Unexpected character at position ' + str(self.pos))
+            return result
 
-        return result
+        num = self.get_number()
+        if num:
+            return num
 
-    # def parse_metric_unit(self):
-    #     result = {}
-    #     while True:
-    #         if self.consume_regex(r'[a-z]'):
-    #             unit = self.expression[self.pos - 1]
-    #             if unit in metric_units:
-    #                 result[unit] = metric_units[unit]
-    #             else:
-    #                 raise ValueError('Unexpected metric unit "' + unit + '" at position ' + str(self.pos - 1))
-    #         elif self.consume('^'):
-    #             power = int(self.consume_regex(r'\d+'))
-    #             for unit in result.keys():
-    #                 result[unit] *= power
-    #         else:
-    #             return result
+        unit = self.get_unit()
+        if unit is not None:
+            return unit
 
-    def parse_operator(self):
-        if self.consume('+'):
-            return '+'
-        elif self.consume('-'):
-            return '-'
-        elif self.consume('*'):
-            return '*'
-        elif self.consume('/'):
-            return '/'
-        elif self.consume('^'):
-            return '^'
-        else:
-            raise ValueError('Expected an operator at position ' + str(self.pos))
+        raise ValueError('Unexpected character at position ' + str(self.pos) +
+                         f"\ntext: {self.expression}\n      {' '*self.pos}^")
 
-    def consume(self, char):
+    def consume(self, char: str):
         if self.pos < len(self.expression) and self.expression[self.pos] == char:
             self.pos += 1
             return True
         else:
             return False
 
-    def consume_regex(self, pattern):
-        match = re.match(pattern, self.expression[self.pos:])
-        if match:
-            self.pos += match.end()
-            return match.group(0)
-        else:
-            raise ValueError('Expected a pattern at position ' + str(self.pos))
-
-    def expect(self, char):
+    def expect(self, char: str):
         if not self.consume(char):
             raise ValueError('Expected "' + char + '" at position ' + str(self.pos))
 
-    def is_number(self):
-        return re.match(r'\d+(\.\d*)?', self.expression[self.pos:])
+    def get_number(self) -> int | float | None:
+        match = re.match(r'-?\d+(\.\d*)?', self.expression[self.pos:])
+        if match:
+            self.pos += match.end()
+            num = float(match.group(0))
+            if num.is_integer():
+                num = int(num)
+            return num
 
-    def is_variable(self):
+        return None
+
+    def get_unit(self) -> Unit | None:
         match = re.match(r'[a-zA-Z]+', self.expression[self.pos:])
-        if match and self.expression[self.pos:self.pos+match.end()] in self.symbols:
-            return True
-        return False
+        if match:
+            value = self.expression[self.pos:self.pos+match.end()]
+            if value in ledger:
+                self.pos += match.end()
+                return Unit({ledger.get_entry(value): 1})
+
+        return None

@@ -7,7 +7,7 @@ import unitpy.definitions.prefix as prefix_
 
 class Entry:
     """
-    representation of a fundamental unit
+    representation of a single unit + prefix
 
     """
     __slots__ = ("label", 'abbr', 'base_unit', "_multiplier", "offset", "prefix", "additional_labels")
@@ -24,7 +24,7 @@ class Entry:
         self.label = label
         self.abbr = abbr
         self.prefix = prefix
-        self.additional_labels = additional_labels
+        self.additional_labels = additional_labels if additional_labels is not None else []
         self.base_unit = base_unit
         self._multiplier = multiplier
         self.offset = offset if offset is not None else 0
@@ -34,11 +34,6 @@ class Entry:
 
     def __repr__(self):
         return f"Entry({self.label}, {self.abbr}, {self.prefix}, {self.base_unit})"
-
-    def details(self):
-        text = ""
-        text = self.label
-
 
     @property
     def multiplier(self) -> int | float:
