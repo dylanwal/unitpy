@@ -61,6 +61,19 @@ class Dimension:
     def __str__(self):
         return self.label
 
+    def __hash__(self):
+        return hash(tuple([type(self).__name__] + [getattr(self, base) for base in self.__slots__]))
+
+    def __eq__(self, other: Dimension):
+        if not isinstance(other, Dimension):
+            raise TypeError("Equality can only be done between Dimension.")
+
+        for base in self.__slots__:
+            if getattr(self, base) != getattr(other, base):
+                return False
+
+        return True
+
     @property
     def label(self) -> str:
         return equation_formater({f"[{k.label}]": v for k, v in self.as_dict().items()})

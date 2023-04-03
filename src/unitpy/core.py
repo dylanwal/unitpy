@@ -29,7 +29,12 @@ def get_unit_from_base(base_set: BaseSet) -> dict[Entry, int | float]:
     return dict_
 
 
-class Unit:
+class MetaUnit(type):
+    def __getattr__(self, item):
+        return Unit(item)
+
+
+class Unit(metaclass=MetaUnit):
     _ledger = ledger
 
     __slots__ = ("_unit", "_base_unit", "_multiplier", "_offset")
@@ -73,9 +78,6 @@ class Unit:
         unit._unit = self._unit
         unit._base_unit = self._base_unit
         return unit
-
-    # def __getattr__(self, item):
-    #     return self.Unit(item)
 
     def __eq__(self, other: Unit) -> bool:
         """
@@ -199,9 +201,7 @@ class Unit:
 
     @property
     def dimensionless(self) -> bool:
-        if self.base_unit.dimensionless:
-            return False
-        return True
+        return self.base_unit.dimensionless
 
     @property
     def base_unit(self) -> BaseSet:

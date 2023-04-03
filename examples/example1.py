@@ -1,22 +1,36 @@
-import time
+from unitpy import U, Q , Unit, Quantity
+# Q = Quantity
 
-start = time.perf_counter()
-import unitpy
-end = time.perf_counter()
-print(end-start)
+q = 1 * U("kilometer/hour")
+q = 1 * (U.kilometer / U.hour)
+q = Quantity("1 km/h")
+q = Q("1 kilometer per hour")
+q = Q("1*kilometer/hour")
 
 
-print(unitpy.ledger)
-# a = 2 * unitpy.U("m*2") # TypeError: Can only multiply Unit by Unit
+# properties
+print(q.unit)  # kilometer / hour
+print(q.dimensionality)  # [length] / [time]
+print(q.dimensionless)  # False
+print(q.base_unit)  # meter / second
 
-a = unitpy.Q("1 bar")
-print(a.dimensionality)
 
-b = unitpy.Q("2.8427778 W*h")
-b.unit.multiplier
-print(b.to("J"))
 
-# print(a.is_close(b, 1e-6))
+from unitpy import U, Q , Unit, Quantity
+# Q = Quantity
 
-c = unitpy.Q("2.54cm")
-print(c)
+q = 1 * U("km/h")
+q2 = q.to("mile per hour")
+print(q2)  # 0.621371 mi/h
+
+
+
+from unitpy import U, Q
+
+q = 1 * U("km/h")
+q2 = 2.2 * U("mile per hour")
+print(q2 + q)
+print(q2 - q)
+print(q2 * q)
+print(q2 / q)
+print((q2 / q).dimensionless)

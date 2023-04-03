@@ -103,6 +103,9 @@ class BaseSet:
 
         return True
 
+    def __hash__(self):
+        return hash(tuple([type(self).__name__] + [getattr(self, base) for base in self.__slots__]))
+
     def __mul__(self, other: BaseSet) -> BaseSet:
         if not isinstance(other, BaseSet):
             raise TypeError("Can only add 'BaseSet' with 'BaseSet'.")

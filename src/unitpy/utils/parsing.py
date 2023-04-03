@@ -31,6 +31,8 @@ def get_value(text: str) -> tuple[int | float, str]:
 
 def parse_quantity(quantity: str) -> Quantity:
     value, unit = get_value(quantity)
+    unit = unit.strip()
+    unit = unit.lstrip("*")
     unit = parse_unit(unit)
     return value * unit
 
@@ -65,12 +67,12 @@ class Parser:
         return result
 
     def syntax_fix(self):
+        self.expression = self.expression.replace(" per ", "/")
         self.expression = self.expression.replace("   ", " ")
         self.expression = self.expression.replace("  ", " ")
         self.expression = self.expression.replace("**", "^")
         self.expression = re.sub(r'(?<=[a-zA-Z0-9]) +(?=[a-zA-Z0-9])', "*", self.expression)
         self.expression = self.expression.replace(" ", "")
-        self.expression = self.expression.replace(" per ", "/")
         # self.expression = self.expression.replace("squared", "^2")
         # self.expression = self.expression.replace("cubed", "^3")
 

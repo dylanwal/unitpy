@@ -42,16 +42,16 @@ Python 3.7 and up
 from unitpy import U, Q, Unit, Quantity
 # U = Unit
 
-u = Unit("meter")
-u = U("meter")
-u = U("m")
-u = U.meter
-u = U.m
+u = Unit("kilometer")
+u = U("kilometer")
+u = U("km")
+u = U.kilometer
+u = U.km
 
-u = U("meter/second")
-u = U("m/s")
-u = U.meter / U.second
-u = U.m / U.s
+u = U("kilometer/hour")
+u = U("km/h")
+u = U.kilometer / U.hour
+u = U.km / U.h
 
 # properties
 u.dimensionality  # [length] / [time]
@@ -68,18 +68,18 @@ u.base_unit  # meter / second
 from unitpy import U, Q , Unit, Quantity
 # Q = Quantity
 
-q = 1 * U("meter/second") 
-q = 1 * (U.meter / U.second)
-q = Quantity("1 m/s")
-q = Q("1 meter/second")
-q = Q("1*meter/second")
+q = 1 * U("kilometer/hour") 
+q = 1 * (U.kilometer / U.hour)
+q = Quantity("1 km/h")
+q = Q("1 kilometer per hour")
+q = Q("1*kilometer/hour")
 
 
 # properties
-q.unit # meter / second
-q.dimensionality  # [length] / [time]
-q.dimensionless  # False
-q.base_unit  # meter / second
+print(q.unit) # kilometer / hour
+print(q.dimensionality)  # [length] / [time]
+print(q.dimensionless)  # False
+print(q.base_unit)  # meter / second
 ```
 
 
@@ -89,14 +89,25 @@ q.base_unit  # meter / second
 from unitpy import U, Q , Unit, Quantity
 # Q = Quantity
 
-q = 1 * U("meter/second") 
-q2 = q.to("mph")
-print(q2)
+q = 1 * U("km/h") 
+q2 = q.to("mile per hour")
+print(q2)  # 0.6213711922373341 mile / hour
 ```
 
 
 ### Mathematical operation
 
+```python
+from unitpy import U, Q 
+
+q = 1 * U("km/h") 
+q2 = 2.2 * U("mile per hour")
+print(q2 + q)  # 3.2 mile / hour
+print(q2 - q)  # 1.2000000000000002 mile / hour
+print(q2 * q)  # 2.2 kilometer mile / hour**2
+print(q2 / q) # 2.2 mile / kilometer
+print((q2 / q).dimensionless) # True
+```
 
 ### Temperature
 
