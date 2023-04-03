@@ -90,7 +90,9 @@ class Dimension:
 
         return True
 
-    def as_dict(self) -> dict[BaseDimension, int | float]:
+    def as_dict(self, key_str: bool = False) -> dict[BaseDimension, int | float]:
+        if key_str:
+            return {attr_name: getattr(self, attr_name) for attr_name in self.__slots__}
         return {self.dimensions[attr_name]: getattr(self, attr_name) for attr_name in self.__slots__}
 
     def process_dim_dict(self, dim_dict: dict[BaseDimension | str, int | float]):

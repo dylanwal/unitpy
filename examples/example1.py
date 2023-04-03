@@ -34,3 +34,21 @@ print(q2 - q)
 print(q2 * q)
 print(q2 / q)
 print((q2 / q).dimensionless)
+
+
+
+from unitpy import U, Q
+
+q = 300 * U("K")
+q2 = 200 * U("K")
+
+print(q + q2)
+print(q.to("degC"))
+print(q.to("degF"))
+print(q.to("degR"))
+
+q = 10 * U("degC")
+q2 = 5 * U("degC")
+
+print(q + q2)
+print(q - q2)

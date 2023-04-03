@@ -3,6 +3,7 @@
 ---
 ---
 
+![Python](https://img.shields.io/pypi/pyversions/unitpy)
 ![PyPI](https://img.shields.io/pypi/v/unitpy)
 ![downloads](https://static.pepy.tech/badge/unitpy)
 ![license](https://img.shields.io/github/license/dylanwal/unitpy)
@@ -53,9 +54,9 @@ u = U.kilometer / U.hour
 u = U.km / U.h
 
 # properties
-u.dimensionality  # [length] / [time]
-u.dimensionless  # False
-u.base_unit  # meter / second
+print(u.dimensionality)  # [length] / [time]
+print(u.dimensionless)   # False
+print(u.base_unit)       # meter / second
 ```
 
 
@@ -75,10 +76,10 @@ q = Q("1*kilometer/hour")
 
 
 # properties
-print(q.unit) # kilometer / hour
+print(q.unit)            # kilometer / hour
 print(q.dimensionality)  # [length] / [time]
-print(q.dimensionless)  # False
-print(q.base_unit)  # meter / second
+print(q.dimensionless)   # False
+print(q.base_unit)       # meter / second
 ```
 
 
@@ -101,20 +102,64 @@ from unitpy import U, Q
 
 q = 1 * U("km/h") 
 q2 = 2.2 * U("mile per hour")
-print(q2 + q)  # 3.2 mile / hour
-print(q2 - q)  # 1.2000000000000002 mile / hour
-print(q2 * q)  # 2.2 kilometer mile / hour**2
-print(q2 / q) # 2.2 mile / kilometer
+print(q2 + q)                 # 3.2 mile / hour
+print(q2 - q)                 # 1.2000000000000002 mile / hour
+print(q2 * q)                 # 2.2 kilometer mile / hour**2
+print(q2 / q)                 # 2.2 mile / kilometer
 print((q2 / q).dimensionless) # True
 ```
 
 ### Temperature
 
+__Abbreviations:__
+
+* fahrenheits: degF
+* celsius: degC
+* kelvin: degK, K
+* rankine: degR
+
+```python
+from unitpy import U, Q
+
+q = 300 * U("K")
+q2 = 200 * U("K")
+
+print(q + q2)        # 500.0 kelvin
+print(q.to("degC"))  # 573.15 Celsius
+print(q.to("degF"))  # 830.6344444444445 Fahrenheit
+print(q.to("degR"))  # 166.66666666666666 Rankine
+```
+
+Temperature units are non-multiplicative units. They are expressed with respect to a reference point (offset).
+> degC = 5/9 * (degF - 32) 
+
+Default behavior is **absolute units**.
+
+For **relative units** use dedicated functions `add_rel()` or `sub_rel()`.
+
+```python
+from unitpy import U, Q
+
+q = 10 * U("degC")
+q2 = 5 * U("degC")
+
+# absolute
+print(q.to("K"))         # 283.15 kelvin
+print(q + q2)            # 288.15 Celsius 
+print((q + q2).to("K"))  # 561.3 kelvin
+print(q - q2)            # -268.15 Celsius
+print((q - q2).to("K"))  # 5.0 kelvin
+
+# relative
+print(q.add_rel(q2))      # 15 Celsius
+print(q.sub_rel(q2))      # 5 Celsius
+print(abs(-10 * U.degC))  # 10 Celsius
+```
 
 
 
+## Notes
 
+---
 
-
-
-Note: this package utilizes the American spellings "meter," "liter," and "ton"
+* this package utilizes the American spellings "meter," "liter," and "ton"
