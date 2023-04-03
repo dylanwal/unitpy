@@ -16,5 +16,7 @@ b = unitpy.Q("2.8427778 W*h")
 b.unit.multiplier
 print(b.to("J"))
 
-print(a.is_close(b, 1e-6))
+# print(a.is_close(b, 1e-6))
 
+c = unitpy.Q("2.54cm")
+print(c)

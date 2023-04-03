@@ -11,6 +11,3 @@ Q = Quantity
 
 # single-sourcing the package version
 __version__ = pkg_resources.require("unitpy")[0].version
-
-
-

@@ -8,12 +8,11 @@ import unitpy.definitions.prefix as prefix_
 from unitpy.definitions.entry import Entry
 
 import unitpy.definitions.unit_base as bases
-import unitpy.definitions.unit_derived as unit_derived
-import unitpy.definitions.unit_NIST as unit_NIST
 
 
 class Ledger:
     """ The leger is a grouping all units. """
+    _cache = False
     dimensions = dim_.dimensions
     prefixes = prefix_.prefixes
     constants = constants
@@ -71,6 +70,8 @@ class Ledger:
                 self._lookup[label] = entry
 
     def _save_cache(self):
+        a = self.symbols  # cause it to load
+
         import pathlib
         file = pathlib.Path(__file__).parent / pathlib.Path("_ledger_cache.pickle")
         import pickle
@@ -82,96 +83,108 @@ class Ledger:
         import pathlib
         file = pathlib.Path(__file__).parent / pathlib.Path("_ledger_cache.pickle")
         if file.exists():
+            cls._cache = True
             import pickle
             with open(file, 'rb') as f:
-                pickle.load(f)
+                return pickle.load(f)
+
+        return None
+
+# ledger = Ledger()
+
+_ledger_cache = Ledger._load_cache()
+
+if _ledger_cache:
+    ledger = _ledger_cache
+
+else:
+    ledger = Ledger()
+
+    import unitpy.definitions.unit_derived as unit_derived
+    import unitpy.definitions.unit_NIST as unit_NIST
+
+    def add_bases():
+        for base in bases.bases.values():
+            if base.label == "kilogram":
+                continue  # add separately
+
+            base_entry = Entry(label=base.label, abbr=base.abbr, base_unit=bases.BaseSet(**{base.label: 1}), multiplier=1)
+            ledger.add_unit(base_entry)
+            add_with_prefix(base_entry)
 
 
-ledger = Ledger()
-
-
-def add_bases():
-    for base in bases.bases.values():
-        if base.label == "kilogram":
-            continue  # add separately
-
-        base_entry = Entry(label=base.label, abbr=base.abbr, base_unit=bases.BaseSet(**{base.label: 1}), multiplier=1)
+    def add_kilogram():
+        base_entry = Entry(label="gram", abbr="g", base_unit=bases.BaseSet(kilogram=1), multiplier=1)
         ledger.add_unit(base_entry)
         add_with_prefix(base_entry)
 
 
-def add_kilogram():
-    base_entry = Entry(label="gram", abbr="g", base_unit=bases.BaseSet(kilogram=1), multiplier=1)
-    ledger.add_unit(base_entry)
-    add_with_prefix(base_entry)
+    def add_derived_quantities():
+        for entry in unit_derived.derived_quantities.values():
+            ledger.add_unit(entry)
+            add_with_prefix(entry)
 
 
-def add_derived_quantities():
-    for entry in unit_derived.derived_quantities.values():
-        ledger.add_unit(entry)
-        add_with_prefix(entry)
-
-
-def add_with_prefix(entry: Entry):
-    for pre in ledger.prefixes.values():
-        ledger.add_unit(
-            Entry(
-                label=pre.label + entry.label,
-                abbr=pre.abbr[0] + entry.abbr,
-                base_unit=entry.base_unit,
-                multiplier=entry.multiplier,
-                prefix=pre,
-                additional_labels=get_additional_labels(pre.abbr, entry.additional_labels)
-            )
-        )
-
-
-def add_core():
-    # for group in groups_names:
-    for group in unit_NIST.units_NIST.values():
-        # base
-        base_unit = group.pop("base")
-
-        for label, value in group.items():
+    def add_with_prefix(entry: Entry):
+        for pre in ledger.prefixes.values():
             ledger.add_unit(
                 Entry(
-                    label=label,
-                    abbr=value["abbr"],
-                    base_unit=base_unit,
-                    multiplier=value["multiplier"],
-                    offset=value["offset"] if "offset" in value else None,
-                    additional_labels=value["additional_labels"] if "additional_labels" in value else [],
+                    label=pre.label + entry.label,
+                    abbr=pre.abbr[0] + entry.abbr,
+                    base_unit=entry.base_unit,
+                    multiplier=entry.multiplier,
+                    prefix=pre,
+                    additional_labels=get_additional_labels(pre.abbr, entry.additional_labels)
                 )
             )
 
 
-def get_additional_labels(pre: list[str, ...], labels: list[str, ...]) -> list:
-    if labels is None or len(labels) < 1:
-        return []
-    if len(labels) < 1:
-        return pre + labels
+    def add_core():
+        # for group in groups_names:
+        for group in unit_NIST.units_NIST.values():
+            # base
+            base_unit = group.pop("base")
 
-    return ["".join(i) for i in itertools.product(pre, labels)]
-
-
-add_bases()
-add_kilogram()
-add_derived_quantities()
-add_core()
-
-
-## add unofficial NIST units ## noqa
-#######################################################################################################################
-
-additional_units_with_prefix = {
-    "liter"
-}
+            for label, value in group.items():
+                ledger.add_unit(
+                    Entry(
+                        label=label,
+                        abbr=value["abbr"],
+                        base_unit=base_unit,
+                        multiplier=value["multiplier"],
+                        offset=value["offset"] if "offset" in value else None,
+                        additional_labels=value["additional_labels"] if "additional_labels" in value else [],
+                    )
+                )
 
 
-def add_additional_units_with_prefix():
-    for unit in additional_units_with_prefix:
-        entry = ledger.get_entry(unit)
-        add_with_prefix(entry)
+    def get_additional_labels(pre: list[str, ...], labels: list[str, ...]) -> list:
+        if labels is None or len(labels) < 1:
+            return []
+        if len(labels) < 1:
+            return pre + labels
+
+        return ["".join(i) for i in itertools.product(pre, labels)]
 
 
-add_additional_units_with_prefix()
+    add_bases()
+    add_kilogram()
+    add_derived_quantities()
+    add_core()
+
+
+    ## add unofficial NIST units ## noqa
+    #######################################################################################################################
+
+    additional_units_with_prefix = {
+        "liter"
+    }
+
+
+    def add_additional_units_with_prefix():
+        for unit in additional_units_with_prefix:
+            entry = ledger.get_entry(unit)
+            add_with_prefix(entry)
+
+
+    add_additional_units_with_prefix()

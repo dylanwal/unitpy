@@ -47,7 +47,8 @@ def format_integer_numerator(numerator) -> str:
 
 
 def format_integer_denominator(denominator) -> str:
-    string = config.units.multiplication_seperator.join(format_term(k, power-1) for k, power in denominator if power != 0)
+    string = config.units.multiplication_seperator.join(format_term(k, -1 * power) for k, power in denominator if
+                                                        power != 0)
 
     if config.units.integer_format_denominator_parenthesis and len(denominator) > 1:
         string = "(" + string + ")"

@@ -70,7 +70,7 @@ class Parser:
         self.expression = self.expression.replace("**", "^")
         self.expression = re.sub(r'(?<=[a-zA-Z0-9]) +(?=[a-zA-Z0-9])', "*", self.expression)
         self.expression = self.expression.replace(" ", "")
-        # self.expression = self.expression.replace(" per ", "/")
+        self.expression = self.expression.replace(" per ", "/")
         # self.expression = self.expression.replace("squared", "^2")
         # self.expression = self.expression.replace("cubed", "^3")
 
