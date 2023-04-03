@@ -70,6 +70,22 @@ class Ledger:
                                      f"\nsecond one: {repr(entry)}")
                 self._lookup[label] = entry
 
+    def _save_cache(self):
+        import pathlib
+        file = pathlib.Path(__file__).parent / pathlib.Path("_ledger_cache.pickle")
+        import pickle
+        with open(file, 'wb') as f:
+            pickle.dump(self, f, pickle.HIGHEST_PROTOCOL)
+
+    @classmethod
+    def _load_cache(cls):
+        import pathlib
+        file = pathlib.Path(__file__).parent / pathlib.Path("_ledger_cache.pickle")
+        if file.exists():
+            import pickle
+            with open(file, 'rb') as f:
+                pickle.load(f)
+
 
 ledger = Ledger()
 

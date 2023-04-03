@@ -16,7 +16,7 @@ def convert_to_number(value: str) -> int | float:
 
 def get_value(text: str) -> tuple[int | float, str]:
     best_index = 0
-    for i in range(len(text)+1):
+    for i in range(len(text) + 1):
         try:
             float(text[:i])
             best_index = i
@@ -103,7 +103,7 @@ class Parser:
                 if not (isinstance(super_script, int) or isinstance(super_script, float)):
                     raise ValueError("Power must be numbers.")
 
-                result = result**super_script
+                result = result ** super_script
             else:
                 return result
 
@@ -122,7 +122,7 @@ class Parser:
             return unit
 
         raise ValueError('Unexpected character at position ' + str(self.pos) +
-                         f"\ntext: {self.expression}\n      {' '*self.pos}^")
+                         f"\ntext: {self.expression}\n      {' ' * self.pos}^")
 
     def consume(self, char: str):
         if self.pos < len(self.expression) and self.expression[self.pos] == char:
@@ -149,7 +149,7 @@ class Parser:
     def get_unit(self) -> Unit | None:
         match = re.match(r'[a-zA-Z_]+', self.expression[self.pos:])
         if match:
-            value = self.expression[self.pos:self.pos+match.end()]
+            value = self.expression[self.pos:self.pos + match.end()]
             if value in ledger:
                 self.pos += match.end()
                 return Unit({ledger.get_entry(value): 1})

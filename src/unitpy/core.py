@@ -32,6 +32,8 @@ def get_unit_from_base(base_set: BaseSet) -> dict[Entry, int | float]:
 class Unit:
     _ledger = ledger
 
+    __slots__ = ("_unit", "_base_unit", "_multiplier", "_offset")
+
     def __new__(cls, unit: str | BaseSet = None):
         if isinstance(unit, str):
             from unitpy.utils.parsing import parse_unit
@@ -50,15 +52,6 @@ class Unit:
         self._base_unit: BaseSet | None = None
         self._multiplier: int | float | None = None
         self._offset: int | float | None = None
-
-        # if isinstance(unit, str):
-        #     from unitpy.utils.parsing import parse_unit
-        #     dict_ = parse_unit(unit, self._ledger.symbols)
-        #     self._unit = {ledger.get_entry(k): v for k, v in dict_.items()}
-        #     self._base_unit = get_base_unit(self._unit)
-        # elif isinstance(unit, BaseSet):
-        #     self._unit = get_unit_from_base(unit)
-        #     self._base_unit = unit
 
     def __str__(self):
         return self.label
@@ -229,6 +222,8 @@ class Unit:
 #######################################################################################################################
 class Quantity:
     _ledger = ledger
+
+    __slots__ = ("_unit", "_base_value")
 
     def __new__(cls, value: str | int | float, unit: Unit | str = None):
         if isinstance(value, str):

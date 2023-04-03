@@ -5,6 +5,8 @@ from unitpy.utils.equation_formating import equation_formater
 
 
 class BaseUnit:
+    __slots__ = ("label", "abbr", "dimension")
+
     def __init__(self, label: str, abbr: str, dimension: BaseDimension):
         self.label = label
         self.abbr = abbr
