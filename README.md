@@ -11,8 +11,7 @@ UnitPy is a Python package for defining, converting, and working with units.
 
 The goal of the package is to be simple, straightforward, and performant. 
 
-This package directly implements  
-[NIST (National Institute of Standards and Technology)](https://www.nist.gov/pml/special-publication-811/nist-guide-si-chapter-1-introduction) 
+This package directly implements [NIST (National Institute of Standards and Technology)](https://www.nist.gov/pml/special-publication-811/nist-guide-si-chapter-1-introduction) 
 official unit definitions. 
 
 ---
@@ -21,9 +20,9 @@ official unit definitions.
 
 Pip installable package:
 
-`pip install bigsmiles`
+`pip install unitpy`
 
-[pypi: bigsmiles](https://pypi.org/project/bigsmiles/)
+[pypi: unitpy](https://pypi.org/project/unitpy/)
 
 
 ---
