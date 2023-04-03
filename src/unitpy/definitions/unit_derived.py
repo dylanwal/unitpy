@@ -97,7 +97,7 @@ derived_quantities = {
         abbr="degC",
         base_unit=BaseSet(kelvin=1),
         multiplier=1,
-        offset=-273.15,
+        offset=273.15,
         additional_labels=["centigrade", "celsius"],
     ),
     "lumen": Entry(

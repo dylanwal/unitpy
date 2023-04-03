@@ -47,9 +47,6 @@ class Ledger:
 
         return None
 
-    def unit_in_ledger(self, unit: str) -> bool:
-        return unit in self._lookup
-
     def add_unit(self, entry: Entry):
         if entry.label in self._lookup:
             raise ValueError(f"Duplicate ledger entry."
@@ -102,6 +99,8 @@ def add_bases():
             continue  # add separately
 
         base_entry = Entry(label=base.label, abbr=base.abbr, base_unit=bases.BaseSet(**{base.label: 1}), multiplier=1)
+        if base.label == "kelvin":
+            base_entry.additional_labels += ["degK"]
         ledger.add_unit(base_entry)
         add_with_prefix(base_entry)
 

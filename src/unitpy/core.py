@@ -10,6 +10,8 @@ from unitpy.definitions.entry import Entry
 from unitpy.definitions.ledger import ledger
 from unitpy.utils.equation_formating import equation_formater
 
+_precision = 10
+
 
 def get_base_unit(unit: dict[Entry, int | float]) -> BaseSet:
     base = BaseSet()
@@ -39,17 +41,17 @@ class Unit(metaclass=MetaUnit):
 
     __slots__ = ("_unit", "_base_unit", "_multiplier", "_offset")
 
-    def __new__(cls, unit: str | BaseSet = None):
+    def __new__(cls, unit:  str | dict[Entry, int | float] | BaseSet = None):
         if isinstance(unit, str):
             from unitpy.utils.parsing import parse_unit
             a = parse_unit(unit)
             return a
         elif isinstance(unit, BaseSet):
-            return get_unit_from_base(unit)
+            return Unit(get_unit_from_base(unit))
 
         return super().__new__(cls)
 
-    def __init__(self, unit: str | dict[Entry, int | float] = None):
+    def __init__(self, unit: str | dict[Entry, int | float] | BaseSet = None):
         if hasattr(self, "_unit"):
             return
 
@@ -69,14 +71,12 @@ class Unit(metaclass=MetaUnit):
 
     def __copy__(self) -> Unit:
         unit = Unit()
-        unit._unit = self._unit
-        unit._base_unit = self._base_unit
+        unit._unit = copy.copy(self._unit)
         return unit
 
     def __deepcopy__(self, memo) -> Unit:
         unit = Unit()
-        unit._unit = self._unit
-        unit._base_unit = self._base_unit
+        unit._unit = copy.deepcopy(self._unit)
         return unit
 
     def __eq__(self, other: Unit) -> bool:
@@ -223,7 +223,8 @@ class Unit(metaclass=MetaUnit):
         return self.multiplier * value + self.offset
 
     def from_base_value(self, value: int | float) -> int | float:
-        return value / self.multiplier - self.offset
+        value = value / self.multiplier - self.offset
+        return value
 
 
 ## Quantity ## noqa
@@ -234,18 +235,19 @@ class Quantity:
 
     __slots__ = ("_unit", "_base_value")
 
-    def __new__(cls, value: str | int | float, unit: Unit | str = None):
+    def __new__(cls, value: str | int | float, unit: Unit | BaseSet | str = None):
         if isinstance(value, str):
             from unitpy.utils.parsing import parse_quantity
             return parse_quantity(value)
 
         return super().__new__(cls)
 
-    def __init__(self, value: str | int | float, unit: Unit | str = None):
+    def __init__(self, value: str | int | float, unit: Unit | BaseSet | str = None):
         if hasattr(self, "_unit"):
             return
-        if isinstance(unit, str):
+        if isinstance(unit, str) or isinstance(unit, BaseSet):
             unit = Unit(unit)
+
         self._unit = unit
         self._base_value = unit.to_base_value(value)
 
@@ -262,10 +264,10 @@ class Quantity:
             return hash((self._base_value, self._unit))
 
     def __copy__(self) -> Quantity:
-        return self.__class__(copy.copy(self._base_value), self._unit)
+        return self.__class__(copy.copy(self._base_value), copy.copy(self._unit))
 
     def __deepcopy__(self, memo) -> Quantity:
-        return self.__class__(copy.deepcopy(self._base_value), self._unit)
+        return self.__class__(copy.deepcopy(self._base_value), copy.deepcopy(self._unit))
 
     def _comparison_check(self, other: Quantity):
         if not isinstance(other, Quantity) or self.base_unit != other.base_unit:
@@ -291,16 +293,18 @@ class Quantity:
         self._comparison_check(other)
         return self.base_value >= other.base_value
 
+    def __add__(self, other: Quantity) -> Quantity:
+        if isinstance(other, Quantity) and self.unit == other.unit:
+            base_value = self.base_value + other.base_value
+            quant = Quantity(base_value, self.base_unit)
+            return quant.to(self.unit)
+        else:
+            raise TypeError("Cannot add quantities with different units")
+
     def __iadd__(self, other: Quantity) -> Quantity:
         if isinstance(other, Quantity) and self.unit == other.unit:
             self._base_value += other._base_value
             return self
-        else:
-            raise TypeError("Cannot add quantities with different units")
-
-    def __add__(self, other: Quantity) -> Quantity:
-        if isinstance(other, Quantity) and self.unit == other.unit:
-            return Quantity(self.value + other.value, self.unit)
         else:
             raise TypeError("Cannot add quantities with different units")
 
@@ -315,30 +319,35 @@ class Quantity:
 
     def __sub__(self, other: Quantity) -> Quantity:
         if isinstance(other, Quantity) and self.unit == other.unit:
-            return Quantity(self.value - other.value, self.unit)
+            base_value = self.base_value - other.base_value
+            quant = Quantity(base_value, self.base_unit)
+            return quant.to(self.unit)
         else:
             raise TypeError("Cannot subtract quantities with different units")
 
     def __rsub__(self, other: Quantity) -> Quantity:
         if isinstance(other, Quantity) and self.unit == other.unit:
-            return Quantity(other.value - self.value, self.unit)
+            base_value = other.base_value - self.base_value
+            quant = Quantity(base_value, self.base_unit)
+            return quant.to(self.unit)
         else:
             raise TypeError("Cannot subtract quantities with different units")
 
     def __mul__(self, other: int | float | Quantity) -> Quantity:
         if isinstance(other, (int, float)):
-            return Quantity(self.value * other, self.unit)
+            return Quantity(self._value * other, self.unit)
         elif isinstance(other, Quantity):
-            return Quantity(self.value * other.value, self.unit * other.unit)
+            return Quantity(self._value * other._value, self.unit * other.unit)
         else:
             raise TypeError("Can only multiply Quantity by scalar")
 
     def __imul__(self, other: int | float | Quantity) -> Quantity:
         if isinstance(other, (int, float)):
             self._base_value *= other
+            self._base_value = self._base_value
             return self
         elif isinstance(other, Quantity):
-            self._base_value *= other.value
+            self._base_value *= other._value
             self._unit *= other.unit
             return self
         else:
@@ -348,9 +357,9 @@ class Quantity:
 
     def __truediv__(self, other: int | float | Quantity) -> Quantity:
         if isinstance(other, (int, float)):
-            return Quantity(self.value / other, self.unit)
+            return Quantity(self._value / other, self.unit)
         elif isinstance(other, Quantity):
-            return Quantity(self.value / other.value, self.unit / other.unit)
+            return Quantity(self._value / other._value, self.unit / other.unit)
         else:
             raise TypeError("Can only divide 'Quantity' by 'int', 'float' or 'Quantity'.")
 
@@ -367,17 +376,17 @@ class Quantity:
 
     def __rtruediv__(self, other: int | float | Quantity) -> Quantity:
         if isinstance(other, (int, float)):
-            return Quantity(other / self.value, Unit("") / self.unit)
+            return Quantity(other / self._value, Unit("") / self.unit)
         elif isinstance(other, Quantity):
-            return Quantity(other.value / self.value, Unit("") / self.unit)
+            return Quantity(other._value / self._value, Unit("") / self.unit)
         else:
             raise TypeError("Can only divide 'Quantity' by 'int', 'float' or 'Quantity'.")
 
     def __floordiv__(self, other: int | float | Quantity) -> Quantity:
         if isinstance(other, (int, float)):
-            return Quantity(self.value // other, self.unit)
+            return Quantity(self._value // other, self.unit)
         elif isinstance(other, Quantity):
-            return Quantity(self.value // other.value, self.unit / other.unit)
+            return Quantity(self._value // other._value, self.unit / other.unit)
         else:
             raise TypeError("Can only divide 'Quantity' by 'int', 'float' or 'Quantity'.")
 
@@ -394,7 +403,7 @@ class Quantity:
 
     def __pow__(self, power: int | float) -> Quantity:
         if isinstance(power, int) or isinstance(power, float):
-            return Quantity(self.value ** power, self.unit)
+            return Quantity(self._value ** power, self.unit)
         else:
             raise TypeError("Power must be a 'int' or 'float'.")
 
@@ -406,17 +415,17 @@ class Quantity:
             raise TypeError("Power must be a 'int' or 'float'.")
 
     def __int__(self) -> Quantity:
-        return Quantity(int(self.value), self.unit)
+        return Quantity(int(self._value), self.unit)
 
     def __float__(self) -> Quantity:
-        return Quantity(float(self.value), self.unit)
+        return Quantity(float(self._value), self.unit)
 
     def __floor__(self) -> Quantity:
-        return Quantity(math.floor(self.value), self.unit)
+        return Quantity(math.floor(self._value), self.unit)
 
     def __mod__(self, other: int | float) -> Quantity:
         if isinstance(other, (int, float)):
-            return Quantity(self.value % other, self.unit)
+            return Quantity(self._value % other, self.unit)
         else:
             raise TypeError("Can only perform the modulo operation of a 'Quantity' with an 'int' or 'float'.")
 
@@ -428,18 +437,28 @@ class Quantity:
             raise TypeError("Can only perform the modulo operation of a 'Quantity' with an 'int' or 'float'.")
 
     def __abs__(self) -> Quantity:
-        return Quantity(abs(self.value), self.unit)
+        return Quantity(abs(self._value), self.unit)
 
     def __ceil__(self) -> Quantity:
-        return Quantity(math.ceil(self.value), self.unit)
+        return Quantity(math.ceil(self._value), self.unit)
+
+    @property
+    def _value(self):
+        return self.unit.from_base_value(self._base_value)
 
     @property
     def v(self) -> int | float:
-        return self.unit.from_base_value(self._base_value)
+        return self.value
 
     @property
     def value(self) -> int | float:
-        return self.unit.from_base_value(self._base_value)
+        value = self._value
+        if isinstance(value, float):
+            value = round(value, _precision)
+            if value.is_integer():
+                value = int(value)
+
+        return value
 
     @property
     def u(self) -> Unit:
@@ -451,7 +470,13 @@ class Quantity:
 
     @property
     def base_value(self) -> int | float:
-        return self._base_value
+        value = self._base_value
+        if isinstance(value, float):
+            value = round(value, _precision)
+            if value.is_integer():
+                value = int(value)
+
+        return value
 
     @property
     def base_unit(self) -> BaseSet:
@@ -482,3 +507,18 @@ class Quantity:
         """ Return True if the other quantity is close to this quantity and False otherwise. """
         self._comparison_check(other)
         return math.isclose(self.base_value, other.base_value, rel_tol=rel_tol, abs_tol=abs_tol)
+
+    def add_rel(self, other: Quantity) -> Quantity:
+        """ Only need for temperature conversion """
+        if isinstance(other, Quantity) and self.unit == other.unit:
+            return Quantity(self.value + other.to(self.unit).value, self.unit)
+        else:
+            raise TypeError("Cannot add quantities with different units")
+
+    def sub_rel(self, other: Quantity) -> Quantity:
+        """ Only need for temperature conversion """
+        if isinstance(other, Quantity) and self.unit == other.unit:
+            return Quantity(self.value - other.to(self.unit).value, self.unit)
+        else:
+            raise TypeError("Cannot add quantities with different units")
+
