@@ -180,7 +180,16 @@ class Unit(metaclass=MetaUnit):
     @property
     def multiplier(self) -> int | float:
         if self._multiplier is None:
-            self._multiplier = math.prod([k.multiplier ** v for k, v in self._unit.items()])
+            try:
+                self._multiplier = math.prod([k.multiplier ** v for k, v in self._unit.items()])
+            except AttributeError:
+                # math.prod added in python 3.8
+                # will be removed when support for python 3.7 is over
+                multipliers = [k.multiplier ** v for k, v in self._unit.items()]
+                prod = 1
+                for multi in multipliers:
+                    prod *= multi
+                self._multiplier = prod
 
         return self._multiplier
 
