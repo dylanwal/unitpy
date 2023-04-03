@@ -15,6 +15,8 @@ print(q.dimensionless)  # False
 print(q.base_unit)  # meter / second
 
 
+print("")
+
 
 from unitpy import U, Q , Unit, Quantity
 # Q = Quantity
@@ -23,6 +25,8 @@ q = 1 * U("km/h")
 q2 = q.to("mile per hour")
 print(q2)  # 0.621371 mi/h
 
+
+print("")
 
 
 from unitpy import U, Q
@@ -36,19 +40,22 @@ print(q2 / q)
 print((q2 / q).dimensionless)
 
 
+print("")
+
 
 from unitpy import U, Q
-
-q = 300 * U("K")
-q2 = 200 * U("K")
-
-print(q + q2)
-print(q.to("degC"))
-print(q.to("degF"))
-print(q.to("degR"))
 
 q = 10 * U("degC")
 q2 = 5 * U("degC")
 
-print(q + q2)
-print(q - q2)
+# absolute
+print(q.to("K"))         # 283.15 kelvin
+print(q + q2)            # 288.15 Celsius
+print((q + q2).to("K"))  # 561.3 kelvin
+print(q - q2)            # -268.15 Celsius
+print((q - q2).to("K"))  # 5.0 kelvin
+
+# relative
+print(q.add_rel(q2))      # 15 Celsius
+print(q.sub_rel(q2))      # 5 Celsius
+print(abs(-10 * U.degC))  # 10 Celsius
