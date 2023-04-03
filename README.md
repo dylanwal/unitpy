@@ -91,7 +91,7 @@ from unitpy import U, Q , Unit, Quantity
 
 q = 1 * U("km/h") 
 q2 = q.to("mile per hour")
-print(q2)  # 0.6213711922373341 mile / hour
+print(q2)  # 0.6213711922 mile / hour
 ```
 
 
@@ -102,8 +102,8 @@ from unitpy import U, Q
 
 q = 1 * U("km/h") 
 q2 = 2.2 * U("mile per hour")
-print(q2 + q)                 # 3.2 mile / hour
-print(q2 - q)                 # 1.2000000000000002 mile / hour
+print(q2 + q)                 # 2.8213711923 mile / hour
+print(q2 - q)                 # 1.5786288077 mile / hour
 print(q2 * q)                 # 2.2 kilometer mile / hour**2
 print(q2 / q)                 # 2.2 mile / kilometer
 print((q2 / q).dimensionless) # True
@@ -125,9 +125,9 @@ q = 300 * U("K")
 q2 = 200 * U("K")
 
 print(q + q2)        # 500.0 kelvin
-print(q.to("degC"))  # 573.15 Celsius
-print(q.to("degF"))  # 830.6344444444445 Fahrenheit
-print(q.to("degR"))  # 166.66666666666666 Rankine
+print(q.to("degC"))  # 26.85 Celsius
+print(q.to("degF"))  # 830.6344444444 Fahrenheit
+print(q.to("degR"))  # 166.6666666667 Rankine
 ```
 
 Temperature units are non-multiplicative units. They are expressed with respect to a reference point (offset).
