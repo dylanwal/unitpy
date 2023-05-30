@@ -14,7 +14,7 @@ cases = (
 
 
 @pytest.mark.parametrize("case", cases)
-def test_math_add(case):
+def test_math_add(case: tuple):
     text, unit, value, _ = case
     quantities = [Q(t) for t in text]
     sum_ = quantities[0]
@@ -25,7 +25,7 @@ def test_math_add(case):
 
 
 @pytest.mark.parametrize("case", cases)
-def test_math_add_inplace(case):
+def test_math_add_inplace(case: tuple):
     text, unit, value, _ = case
     quantities = [Q(t) for t in text]
     sum_ = quantities[0]
@@ -36,7 +36,7 @@ def test_math_add_inplace(case):
 
 
 @pytest.mark.parametrize("case", cases)
-def test_math_sub(case):
+def test_math_sub(case: tuple):
     text, unit, _, value = case
     quantities = [Q(t) for t in text]
     sum_ = quantities[0]
@@ -47,7 +47,7 @@ def test_math_sub(case):
 
 
 @pytest.mark.parametrize("case", cases)
-def test_math_sub_inplace(case):
+def test_math_sub_inplace(case: tuple):
     text, unit, _, value = case
     quantities = [Q(t) for t in text]
     sum_ = quantities[0]
@@ -121,3 +121,7 @@ def test_compare_error_e():
     with pytest.raises(ValueError) as _:
         Q("1 m") == Q("1 s")
 
+
+def test_round():
+    q = Q("1.2345 ft")
+    assert (round(q) == Q("1 ft")) is True
