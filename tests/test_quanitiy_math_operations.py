@@ -125,3 +125,8 @@ def test_compare_error_e():
 def test_round():
     q = Q("1.2345 ft")
     assert (round(q) == Q("1 ft")) is True
+
+
+def test_round_3():
+    q = Q("1.2345 ft")
+    assert (round(q, 3) == Q("1.234 ft")) is True

@@ -444,7 +444,7 @@ class Quantity(typing.SupportsRound):
         return Quantity(math.ceil(self._value), self.unit)
 
     def __round__(self, n: int = 0) -> Quantity:
-        return Quantity(round(self._value), self.unit)
+        return Quantity(round(self._value, n), self.unit)
 
     @property
     def _value(self):
@@ -525,4 +525,3 @@ class Quantity(typing.SupportsRound):
             return Quantity(self.value - other.to(self.unit).value, self.unit)
         else:
             raise TypeError("Cannot add quantities with different units")
-
