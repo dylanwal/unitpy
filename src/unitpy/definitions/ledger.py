@@ -10,6 +10,7 @@ from unitpy.definitions.entry import Entry
 import unitpy.definitions.unit_base as bases
 import unitpy.definitions.unit_derived as unit_derived
 import unitpy.definitions.unit_NIST as unit_NIST
+import unitpy.definitions.unit_extra as unit_extra
 
 
 class Ledger:
@@ -63,7 +64,7 @@ class Ledger:
             self._lookup[entry.abbr] = entry
             for label in entry.additional_labels:
                 if label in self._lookup:
-                    raise ValueError(f"Duplicate ledger entry."
+                    raise ValueError(f"Duplicate ledger entry: {label}."
                                      f"\nexisting: {repr(self._lookup[entry.label])} "
                                      f"\nsecond one: {repr(entry)}")
                 self._lookup[label] = entry
@@ -168,8 +169,16 @@ add_core()
 ## add unofficial NIST units ## noqa
 #######################################################################################################################
 
+def add_extra_quantities():
+    for entry in unit_extra.extra_quantities.values():
+        ledger.add_unit(entry)
+
+
+add_extra_quantities()
+
 additional_units_with_prefix = {
-    "liter"
+    "liter",
+    "molar",
 }
 
 
