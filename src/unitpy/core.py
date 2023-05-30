@@ -3,6 +3,7 @@ from __future__ import annotations
 import itertools
 import math
 import copy
+import typing
 
 from unitpy.definitions.dimensions import Dimension
 from unitpy.definitions.unit_base import BaseSet
@@ -230,7 +231,7 @@ class Unit(metaclass=MetaUnit):
 ## Quantity ## noqa
 #######################################################################################################################
 #######################################################################################################################
-class Quantity:
+class Quantity(typing.SupportsRound):
     _ledger = ledger
 
     __slots__ = ("_unit", "_base_value")
@@ -442,6 +443,9 @@ class Quantity:
     def __ceil__(self) -> Quantity:
         return Quantity(math.ceil(self._value), self.unit)
 
+    def __round__(self, n: int = 0) -> Quantity:
+        return Quantity(round(self._value, n), self.unit)
+
     @property
     def _value(self):
         return self.unit.from_base_value(self._base_value)
@@ -521,4 +525,3 @@ class Quantity:
             return Quantity(self.value - other.to(self.unit).value, self.unit)
         else:
             raise TypeError("Cannot add quantities with different units")
-
