@@ -14,7 +14,7 @@ def equation_formater(dict_: dict[str, int | float]) -> str:
 
 
 def format_with_power(dict_: dict[str, int | float]) -> str:
-    return " ".join([f"{k}**{v}" for k, v in dict_.items() if v != 0])
+    return config.units.multiplication_seperator.join([f"{k}**{v}" for k, v in dict_.items() if v != 0])
 
 
 def format_with_symbols(dict_: dict) -> str:

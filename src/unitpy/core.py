@@ -4,6 +4,7 @@ import itertools
 import math
 import copy
 import typing
+from datetime import timedelta
 
 from unitpy.definitions.dimensions import Dimension
 from unitpy.definitions.unit_base import BaseSet
@@ -525,3 +526,9 @@ class Quantity(typing.SupportsRound):
             return Quantity(self.value - other.to(self.unit).value, self.unit)
         else:
             raise TypeError("Cannot add quantities with different units")
+
+    def to_timedelta(self) -> timedelta:
+        if self.unit.dimensionality != Dimension(time=1):
+            raise TypeError("Must be a time dimension to convert to 'timedelta'.")
+
+        return timedelta(seconds=self.to("s").v)
