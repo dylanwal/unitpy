@@ -157,9 +157,23 @@ print(abs(-10 * U.degC))  # 10 Celsius
 ```
 
 
+### Time
+
+```python
+from unitpy import U
+
+a = 1.234 * U.min
+print(a)              # 1.234 minute
+b = a.to_timedelta()
+print(b)              # 0:01:14.040000
+print(type(b))        # <class 'datetime.timedelta'>
+```
+
 
 ## Notes
 
 ---
 
 * this package utilizes the American spellings "meter," "liter," and "ton"
+* objects are support pickling 
+
