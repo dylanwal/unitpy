@@ -233,11 +233,14 @@ class Unit(metaclass=MetaUnit):
 #######################################################################################################################
 #######################################################################################################################
 class Quantity(typing.SupportsRound):
+    compact_pickle = True
+    # full pickle 624 bytes -> compact pickle 98 bytes
+    # full 0.20 -> compact 0.31 create time
     _ledger = ledger
 
     __slots__ = ("_unit", "_base_value")
 
-    def __new__(cls, value: str | int | float, unit: Unit | BaseSet | str = None):
+    def __new__(cls, value: str | int | float = None, unit: Unit | BaseSet | str = None):
         if isinstance(value, str):
             from unitpy.utils.parsing import parse_quantity
             return parse_quantity(value)
@@ -264,6 +267,21 @@ class Quantity(typing.SupportsRound):
             return hash(self.value)
         else:
             return hash((self._base_value, self._unit))
+
+    def __getstate__(self):
+        if self.compact_pickle:
+            return str(self)
+        return self._base_value, self._unit
+
+    def __setstate__(self, state):
+        if isinstance(state, str):
+            from unitpy.utils.parsing import parse_quantity
+            qant = parse_quantity(state)
+            self._base_value = qant._base_value
+            self._unit = qant._unit
+        else:
+            self._base_value = state[0]
+            self._unit = state[1]
 
     def __copy__(self) -> Quantity:
         return self.__class__(copy.copy(self._base_value), copy.copy(self._unit))
