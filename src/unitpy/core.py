@@ -86,19 +86,19 @@ class Unit(metaclass=MetaUnit):
         This matches to 'base units'; not 'units'
         """
         if not isinstance(other, Unit):
-            raise ValueError("'Unit' equality can only be done between 'Unit' objects")
+            raise ValueError(f"'Unit' equality can only be done between 'Unit' objects. \n{self} == {other}")
 
         return self.base_unit == other.base_unit
 
     def __lt__(self, other):
-        raise ArithmeticError("Units can't be compared.")
+        raise ArithmeticError(f"Units can't be compared.\n{self} + {other}")
 
     __le__ = __lt__
     __gt__ = __lt__
     __ge__ = __lt__
 
     def __add__(self, other):
-        raise ArithmeticError('Units can be added or subtracted.')
+        raise ArithmeticError(f'Units can be added or subtracted.\n{self} + {other}')
 
     __iadd__ = __add__
     __radd__ = __add__
@@ -114,11 +114,11 @@ class Unit(metaclass=MetaUnit):
             return unit
         elif isinstance(other, int) or isinstance(other, float):
             return Quantity(other, self)
-        raise TypeError("Can only multiply Unit by Unit")
+        raise TypeError(f"Can only multiply Unit by Unit.\n{self} * {other}")
 
     def __imul__(self, other: Unit) -> Unit:
         if not isinstance(other, Unit):
-            raise TypeError("Can only multiply Unit by Unit")
+            raise TypeError(f"Can only multiply Unit by Unit.\n{self} * {other}")
 
         for k in set(itertools.chain(self._unit.keys(), other._unit.keys())):
             self._unit[k] = self._unit.get(k, 0) + other._unit.get(k, 0)
@@ -134,11 +134,11 @@ class Unit(metaclass=MetaUnit):
             return unit
         elif isinstance(other, int) or isinstance(other, float):
             return Quantity(1 / other, self)
-        raise TypeError("Can only divide 'Unit' by 'Unit'")
+        raise TypeError(f"Can only divide 'Unit' by 'Unit'.\n{self} / {other}")
 
     def __itruediv__(self, other: Unit) -> Unit:
         if not isinstance(other, Unit):
-            raise TypeError("Can only divide 'Unit' by 'Unit'")
+            raise TypeError(f"Can only divide 'Unit' by 'Unit'.\n{self} / {other}")
 
         for k in set(itertools.chain(self._unit.keys(), other._unit.keys())):
             self._unit[k] = self._unit.get(k, 0) - other._unit.get(k, 0)
@@ -152,7 +152,7 @@ class Unit(metaclass=MetaUnit):
             return unit
         elif isinstance(other, int) or isinstance(other, float):
             return Quantity(other, self ** -1)
-        raise TypeError("Can only divide 'Unit' by 'Unit'")
+        raise TypeError(f"Can only divide 'Unit' by 'Unit'.\n{self} + {other}")
 
     def __pow__(self, power: int | float) -> Unit:
         if isinstance(power, int) or isinstance(power, float):
@@ -161,7 +161,7 @@ class Unit(metaclass=MetaUnit):
                 unit._unit[k] = self._unit[k] * power
             return unit
 
-        raise TypeError("Power must be a 'int' or 'float'.")
+        raise TypeError(f"Power must be a 'int' or 'float'.\n{self} + {power}")
 
     def __ipow__(self, power: int | float) -> Unit:
         if isinstance(power, int) or isinstance(power, float):
@@ -169,7 +169,7 @@ class Unit(metaclass=MetaUnit):
                 self._unit[k] = self._unit[k] * power
             return self
 
-        raise TypeError("Power must be a 'int' or 'float'.")
+        raise TypeError(f"Power must be a 'int' or 'float'.\n{self} + {power}")
 
     @property
     def label(self) -> str:
@@ -291,7 +291,8 @@ class Quantity(typing.SupportsRound):
 
     def _comparison_check(self, other: Quantity):
         if not isinstance(other, Quantity) or self.base_unit != other.base_unit:
-            raise ValueError("'Quantity' comparison can only happen between quantities with same units.")
+            raise ValueError("'Quantity' comparison can only happen between quantities with same units."
+                             f"\n{self} <--> {other}")
 
     def __eq__(self, other: Quantity) -> bool:
         self._comparison_check(other)
@@ -319,14 +320,14 @@ class Quantity(typing.SupportsRound):
             quant = Quantity(base_value, self.base_unit)
             return quant.to(self.unit)
         else:
-            raise TypeError("Cannot add quantities with different units")
+            raise TypeError(f"Cannot add quantities with different units.\n{self} + {other}")
 
     def __iadd__(self, other: Quantity) -> Quantity:
         if isinstance(other, Quantity) and self.unit == other.unit:
             self._base_value += other._base_value
             return self
         else:
-            raise TypeError("Cannot add quantities with different units")
+            raise TypeError(f"Cannot add quantities with different units.\n{self} + {other}")
 
     __radd__ = __add__
 
@@ -335,7 +336,7 @@ class Quantity(typing.SupportsRound):
             self._base_value -= other._base_value
             return self
         else:
-            raise TypeError("Cannot subtract quantities with different units")
+            raise TypeError(f"Cannot subtract quantities with different units.\n{self} - {other}")
 
     def __sub__(self, other: Quantity) -> Quantity:
         if isinstance(other, Quantity) and self.unit == other.unit:
@@ -343,7 +344,7 @@ class Quantity(typing.SupportsRound):
             quant = Quantity(base_value, self.base_unit)
             return quant.to(self.unit)
         else:
-            raise TypeError("Cannot subtract quantities with different units")
+            raise TypeError(f"Cannot subtract quantities with different units.\n{self} + {other}")
 
     def __rsub__(self, other: Quantity) -> Quantity:
         if isinstance(other, Quantity) and self.unit == other.unit:
@@ -351,7 +352,7 @@ class Quantity(typing.SupportsRound):
             quant = Quantity(base_value, self.base_unit)
             return quant.to(self.unit)
         else:
-            raise TypeError("Cannot subtract quantities with different units")
+            raise TypeError(f"Cannot subtract quantities with different units.\n{self} + {other}")
 
     def __mul__(self, other: int | float | Quantity) -> Quantity:
         if isinstance(other, (int, float)):
@@ -359,7 +360,7 @@ class Quantity(typing.SupportsRound):
         elif isinstance(other, Quantity):
             return Quantity(self._value * other._value, self.unit * other.unit)
         else:
-            raise TypeError("Can only multiply Quantity by scalar")
+            raise TypeError(f"Can only multiply Quantity by scalar.\n{self} * {other}")
 
     def __imul__(self, other: int | float | Quantity) -> Quantity:
         if isinstance(other, (int, float)):
@@ -371,7 +372,7 @@ class Quantity(typing.SupportsRound):
             self._unit *= other.unit
             return self
         else:
-            raise TypeError("Can only multiply Quantity by scalar")
+            raise TypeError(f"Can only multiply Quantity by scalar.\n{self} + {other}")
 
     __rmul__ = __mul__
 
@@ -381,7 +382,7 @@ class Quantity(typing.SupportsRound):
         elif isinstance(other, Quantity):
             return Quantity(self._value / other._value, self.unit / other.unit)
         else:
-            raise TypeError("Can only divide 'Quantity' by 'int', 'float' or 'Quantity'.")
+            raise TypeError(f"Can only divide 'Quantity' by 'int', 'float' or 'Quantity'.\n{self} / {other}")
 
     def __itruediv__(self, other: int | float | Quantity) -> Quantity:
         if isinstance(other, (int, float)):
@@ -392,7 +393,7 @@ class Quantity(typing.SupportsRound):
             self._unit /= other._unit
             return self
         else:
-            raise TypeError("Can only divide 'Quantity' by 'int', 'float' or 'Quantity'.")
+            raise TypeError(f"Can only divide 'Quantity' by 'int', 'float' or 'Quantity'.\n{self} / {other}")
 
     def __rtruediv__(self, other: int | float | Quantity) -> Quantity:
         if isinstance(other, (int, float)):
@@ -400,7 +401,7 @@ class Quantity(typing.SupportsRound):
         elif isinstance(other, Quantity):
             return Quantity(other._value / self._value, Unit("") / self.unit)
         else:
-            raise TypeError("Can only divide 'Quantity' by 'int', 'float' or 'Quantity'.")
+            raise TypeError(f"Can only divide 'Quantity' by 'int', 'float' or 'Quantity'.\n{self} / {other}")
 
     def __floordiv__(self, other: int | float | Quantity) -> Quantity:
         if isinstance(other, (int, float)):
@@ -408,7 +409,7 @@ class Quantity(typing.SupportsRound):
         elif isinstance(other, Quantity):
             return Quantity(self._value // other._value, self.unit / other.unit)
         else:
-            raise TypeError("Can only divide 'Quantity' by 'int', 'float' or 'Quantity'.")
+            raise TypeError(f"Can only divide 'Quantity' by 'int', 'float' or 'Quantity'.\n{self} / {other}")
 
     def __ifloordiv__(self, other: int | float | Quantity) -> Quantity:
         if isinstance(other, (int, float)):
@@ -419,20 +420,20 @@ class Quantity(typing.SupportsRound):
             self._unit /= other._unit
             return self
         else:
-            raise TypeError("Can only divide 'Quantity' by 'int', 'float' or 'Quantity'.")
+            raise TypeError(f"Can only divide 'Quantity' by 'int', 'float' or 'Quantity'.\n{self} / {other}")
 
     def __pow__(self, power: int | float) -> Quantity:
         if isinstance(power, int) or isinstance(power, float):
             return Quantity(self._value ** power, self.unit)
         else:
-            raise TypeError("Power must be a 'int' or 'float'.")
+            raise TypeError(f"Power must be a 'int' or 'float'.\n{self} ** {power}")
 
-    def __ipow__(self, other: int | float) -> Quantity:
-        if isinstance(other, (int, float)):
-            self._base_value **= other
+    def __ipow__(self, power: int | float) -> Quantity:
+        if isinstance(power, (int, float)):
+            self._base_value **= power
             return self
         else:
-            raise TypeError("Power must be a 'int' or 'float'.")
+            raise TypeError(f"Power must be a 'int' or 'float'.\n{self} ** {power}")
 
     def __int__(self) -> Quantity:
         return Quantity(int(self._value), self.unit)
@@ -447,14 +448,16 @@ class Quantity(typing.SupportsRound):
         if isinstance(other, (int, float)):
             return Quantity(self._value % other, self.unit)
         else:
-            raise TypeError("Can only perform the modulo operation of a 'Quantity' with an 'int' or 'float'.")
+            raise TypeError("Can only perform the modulo operation of a 'Quantity' with an 'int' or 'float'."
+                            f"\n{self} % {other}")
 
     def __imod__(self, other: int | float) -> Quantity:
         if isinstance(other, (int, float)):
             self._base_value %= other
             return self
         else:
-            raise TypeError("Can only perform the modulo operation of a 'Quantity' with an 'int' or 'float'.")
+            raise TypeError("Can only perform the modulo operation of a 'Quantity' with an 'int' or 'float'."
+                            f"\n{self} % {other}")
 
     def __abs__(self) -> Quantity:
         return Quantity(abs(self._value), self.unit)
@@ -522,7 +525,7 @@ class Quantity(typing.SupportsRound):
             unit = Unit(unit)
 
         if self.unit != unit:
-            raise ValueError("Units are not compatible.")
+            raise ValueError(f"Units are not compatible.\n{self} --> {unit}")
 
         return Quantity(unit.from_base_value(self._base_value), unit)
 
@@ -536,17 +539,17 @@ class Quantity(typing.SupportsRound):
         if isinstance(other, Quantity) and self.unit == other.unit:
             return Quantity(self.value + other.to(self.unit).value, self.unit)
         else:
-            raise TypeError("Cannot add quantities with different units")
+            raise TypeError(f"Cannot add quantities with different units.\n{self} + {other}")
 
     def sub_rel(self, other: Quantity) -> Quantity:
         """ Only need for temperature conversion """
         if isinstance(other, Quantity) and self.unit == other.unit:
             return Quantity(self.value - other.to(self.unit).value, self.unit)
         else:
-            raise TypeError("Cannot add quantities with different units")
+            raise TypeError(f"Cannot subtract quantities with different units.\n{self} - {other}")
 
     def to_timedelta(self) -> timedelta:
         if self.unit.dimensionality != Dimension(time=1):
-            raise TypeError("Must be a time dimension to convert to 'timedelta'.")
+            raise TypeError(f"Must be a time dimension to convert to 'timedelta'.\n{self}")
 
         return timedelta(seconds=self.to("s").v)
