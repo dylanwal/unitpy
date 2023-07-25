@@ -271,7 +271,7 @@ class Quantity(typing.SupportsRound):
     def __getstate__(self):
         if self.compact_pickle:
             return str(self)
-        return self._base_value, self._unit
+        return self._base_value, self._unit.abbr
 
     def __setstate__(self, state):
         if isinstance(state, str):
@@ -424,13 +424,14 @@ class Quantity(typing.SupportsRound):
 
     def __pow__(self, power: int | float) -> Quantity:
         if isinstance(power, int) or isinstance(power, float):
-            return Quantity(self._value ** power, self.unit)
+            return Quantity(self._value ** power, self.unit ** power)
         else:
             raise TypeError(f"Power must be a 'int' or 'float'.\n{self} ** {power}")
 
     def __ipow__(self, power: int | float) -> Quantity:
         if isinstance(power, (int, float)):
             self._base_value **= power
+            self._unit **= power
             return self
         else:
             raise TypeError(f"Power must be a 'int' or 'float'.\n{self} ** {power}")

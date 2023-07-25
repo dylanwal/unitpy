@@ -130,3 +130,8 @@ def test_round():
 def test_round_3():
     q = Q("1.2345 ft")
     assert (round(q, 3) == Q("1.234 ft")) is True
+
+
+def test_power():
+    q = Q("2 ft")
+    assert Q("4 ft**2") == q**2
