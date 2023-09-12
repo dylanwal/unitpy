@@ -135,3 +135,22 @@ def test_round_3():
 def test_power():
     q = Q("2 ft")
     assert Q("4 ft**2") == q**2
+
+
+def test_sum():
+    q = sum([Q("2 in"), Q("2 ft"), Q("4.5 cm")])
+    assert q.is_close(Q('27.77165 inch'), rel_tol=0.00001)
+
+
+def test_max():
+    q = Q("2 in")
+    q2 = Q("2 ft")
+    q3 = Q("4.5 cm")
+    assert max([q, q2, q3]) is q2
+
+
+def test_min():
+    q = Q("2 in")
+    q2 = Q("2 ft")
+    q3 = Q("4.5 cm")
+    assert min([q, q2, q3]) is q3

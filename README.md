@@ -109,6 +109,11 @@ print(q2 / q)                 # 2.2 mile / kilometer
 print((q2 / q).dimensionless) # True
 ```
 
+Other supported functions:
+* `sum`
+* `max`
+* `min`
+
 ### Temperature
 
 __Abbreviations:__
@@ -168,6 +173,40 @@ b = a.to_timedelta()
 print(b)              # 0:01:14.040000
 print(type(b))        # <class 'datetime.timedelta'>
 ```
+
+
+### string formatting
+
+```python
+from unitpy import U
+
+a = 1.23432453 * U.min
+print(a)                # 1.23432453 minute
+print(f"{a:.2f}")       # 1.23 minute
+b = 1_000_000 * U.cm
+print(b)                # 1000000 centimeter
+print(format(b, ","))   # 1,000,000 centimeter
+c = 123 * U.inch
+print(c)                # 123 inch
+print(f"{c:5}")         #   123 inch  (leading spaces)
+print(f"{c:05}")        # 00123 inch  (leading zeros)
+```
+
+#### configuration with .env
+
+To configure the string outputs with environment file (.env):
+
+1) install [python-dotenv](https://github.com/theskumar/python-dotenv/tree/main). The code uses this to load 
+   variables from the .env file
+```commandline
+pip install python-dotenv
+```
+
+2) copy the .env file from this repo into the top level of your repo and edit to your liking
+
+It should now load the environmental variables when you run the code to format it to your liking without any 
+additional code needed.
+
 
 
 ## Notes

@@ -4,17 +4,18 @@ from unitpy.config import config
 
 
 def equation_formater(dict_: dict[str, int | float]) -> str:
-
-    if config.units.format_symbols:
+    if config.format_symbols == config.StringFormat.symbols:
         string = format_with_symbols(dict_)
-    else:
+    elif config.format_symbols == config.StringFormat.power:
         string = format_with_power(dict_)
+    else:
+        raise ValueError("Invalid value for 'config.format_symbols'.")
 
     return string
 
 
 def format_with_power(dict_: dict[str, int | float]) -> str:
-    return config.units.multiplication_seperator.join([f"{k}**{v}" for k, v in dict_.items() if v != 0])
+    return config.multiplication_seperator.join([f"{k}**{v}" for k, v in dict_.items() if v != 0])
 
 
 def format_with_symbols(dict_: dict) -> str:
@@ -32,25 +33,28 @@ def format_with_symbols(dict_: dict) -> str:
         return format_with_power(dict_)
 
     if denominator:
-        string += config.units.division_seperator + format_integer_denominator(denominator)
+        string += config.division_seperator + format_integer_denominator(denominator)
 
     return string
 
 
 def format_integer_numerator(numerator) -> str:
-    string = config.units.multiplication_seperator.join(format_term(k, power) for k, power in numerator if power != 0)
+    string = config.multiplication_seperator.join(format_term(k, power) for k, power in numerator if power != 0)
 
-    if config.units.integer_format_numerator_parenthesis and len(numerator) > 1:
+    if config.integer_format_numerator_parenthesis and len(numerator) > 1:
         string = "(" + string + ")"
+
+    if string == "":
+        string = "1"
 
     return string
 
 
 def format_integer_denominator(denominator) -> str:
-    string = config.units.multiplication_seperator.join(format_term(k, -1 * power) for k, power in denominator if
+    string = config.multiplication_seperator.join(format_term(k, -1 * power) for k, power in denominator if
                                                         power != 0)
 
-    if config.units.integer_format_denominator_parenthesis and len(denominator) > 1:
+    if config.integer_format_denominator_parenthesis and len(denominator) > 1:
         string = "(" + string + ")"
 
     return string

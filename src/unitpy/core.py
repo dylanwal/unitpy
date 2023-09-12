@@ -6,6 +6,7 @@ import copy
 import typing
 from datetime import timedelta
 
+from unitpy.config import config
 from unitpy.definitions.dimensions import Dimension
 from unitpy.definitions.unit_base import BaseSet
 from unitpy.definitions.entry import Entry
@@ -63,10 +64,12 @@ class Unit(metaclass=MetaUnit):
         self._offset: int | float | None = None
 
     def __str__(self):
+        if config.abbr:
+            return self.abbr
         return self.label
 
     def __repr__(self):
-        return self.label
+        return self.__str__()
 
     def __hash__(self) -> int:
         return self._base_unit.__hash__()
@@ -262,6 +265,9 @@ class Quantity(typing.SupportsRound):
     def __repr__(self):
         return f"Quantity({self.value}, '{self.unit}')"
 
+    def __format__(self, format_spec):
+        return f"{format(self.v, format_spec)} {self.unit}"
+
     def __hash__(self) -> int:
         if self.dimensionless:
             return hash(self.value)
@@ -319,15 +325,17 @@ class Quantity(typing.SupportsRound):
             base_value = self.base_value + other.base_value
             quant = Quantity(base_value, self.base_unit)
             return quant.to(self.unit)
-        else:
-            raise TypeError(f"Cannot add quantities with different units.\n{self} + {other}")
+        if other == 0:
+            return self
+        raise TypeError(f"Cannot add quantities with different units.\n{self} + {other}")
 
     def __iadd__(self, other: Quantity) -> Quantity:
         if isinstance(other, Quantity) and self.unit == other.unit:
             self._base_value += other._base_value
             return self
-        else:
-            raise TypeError(f"Cannot add quantities with different units.\n{self} + {other}")
+        if other == 0:
+            return self
+        raise TypeError(f"Cannot add quantities with different units.\n{self} + {other}")
 
     __radd__ = __add__
 
@@ -335,16 +343,18 @@ class Quantity(typing.SupportsRound):
         if isinstance(other, Quantity) and self.unit == other.unit:
             self._base_value -= other._base_value
             return self
-        else:
-            raise TypeError(f"Cannot subtract quantities with different units.\n{self} - {other}")
+        if other == 0:
+            return self
+        raise TypeError(f"Cannot subtract quantities with different units.\n{self} - {other}")
 
     def __sub__(self, other: Quantity) -> Quantity:
         if isinstance(other, Quantity) and self.unit == other.unit:
             base_value = self.base_value - other.base_value
             quant = Quantity(base_value, self.base_unit)
             return quant.to(self.unit)
-        else:
-            raise TypeError(f"Cannot subtract quantities with different units.\n{self} + {other}")
+        if other == 0:
+            return self
+        raise TypeError(f"Cannot subtract quantities with different units.\n{self} - {other}")
 
     def __rsub__(self, other: Quantity) -> Quantity:
         if isinstance(other, Quantity) and self.unit == other.unit:
@@ -360,7 +370,8 @@ class Quantity(typing.SupportsRound):
         elif isinstance(other, Quantity):
             return Quantity(self._value * other._value, self.unit * other.unit)
         else:
-            raise TypeError(f"Can only multiply Quantity by scalar.\n{self} * {other}")
+            raise TypeError(f"Can only multiply Quantity by scalar.\n{self} * {other}\n"
+                            f"This error can is commonly caused by missing parenthesis.")
 
     def __imul__(self, other: int | float | Quantity) -> Quantity:
         if isinstance(other, (int, float)):

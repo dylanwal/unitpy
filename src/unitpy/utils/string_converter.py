@@ -1,3 +1,4 @@
+from __future__ import annotations
 
 from unitpy.core import Unit, Quantity
 
