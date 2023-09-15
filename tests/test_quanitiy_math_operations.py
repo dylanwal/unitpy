@@ -154,3 +154,17 @@ def test_min():
     q2 = Q("2 ft")
     q3 = Q("4.5 cm")
     assert min([q, q2, q3]) is q3
+
+
+def test_isclose_rel():
+    q = Q("1.09 in")
+    q2 = Q("1.0 in")
+    assert q.is_close(q2, rel_tol=0.1)
+    assert not q.is_close(q2, rel_tol=0.001)
+
+
+def test_isclose_abs():
+    q = Q("1.09 in")
+    q2 = Q("1.0 in")
+    assert q.is_close(q2, abs_tol=0.1 * U.inch)
+    assert not q.is_close(q2, abs_tol=0.001 * U.inch)

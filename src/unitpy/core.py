@@ -541,24 +541,34 @@ class Quantity(typing.SupportsRound):
 
         return Quantity(unit.from_base_value(self._base_value), unit)
 
-    def is_close(self, other: Quantity, rel_tol: int | float = 1e-9, abs_tol: int | float = 0) -> bool:
+    def is_close(self, other: Quantity, rel_tol: int | float = 1e-9, abs_tol: Quantity = None) -> bool:
         """ Return True if the other quantity is close to this quantity and False otherwise. """
         self._comparison_check(other)
+        if abs_tol is None:
+            abs_tol = 0
+        else:
+            abs_tol = abs_tol.base_value
         return math.isclose(self.base_value, other.base_value, rel_tol=rel_tol, abs_tol=abs_tol)
 
-    def add_rel(self, other: Quantity) -> Quantity:
+    def add_relative(self, other: Quantity) -> Quantity:
         """ Only need for temperature conversion """
         if isinstance(other, Quantity) and self.unit == other.unit:
             return Quantity(self.value + other.to(self.unit).value, self.unit)
         else:
             raise TypeError(f"Cannot add quantities with different units.\n{self} + {other}")
 
-    def sub_rel(self, other: Quantity) -> Quantity:
+    def add_rel(self, other: Quantity) -> Quantity:
+        return self.add_relative(other)
+
+    def sub_relative(self, other: Quantity) -> Quantity:
         """ Only need for temperature conversion """
         if isinstance(other, Quantity) and self.unit == other.unit:
             return Quantity(self.value - other.to(self.unit).value, self.unit)
         else:
             raise TypeError(f"Cannot subtract quantities with different units.\n{self} - {other}")
+
+    def sub_rel(self, other: Quantity) -> Quantity:
+        return self.sub_relative(other)
 
     def to_timedelta(self) -> timedelta:
         if self.unit.dimensionality != Dimension(time=1):
