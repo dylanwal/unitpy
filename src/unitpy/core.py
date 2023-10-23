@@ -13,6 +13,7 @@ from unitpy.definitions.entry import Entry
 from unitpy.definitions.ledger import ledger
 from unitpy.utils.equation_formating import equation_formater
 
+
 _precision = 10
 
 
@@ -38,11 +39,33 @@ class MetaUnit(type):
     def __getattr__(self, item):
         return Unit(item)
 
+np = None
 
 class Unit(metaclass=MetaUnit):
     _ledger = ledger
 
     __slots__ = ("_unit", "_base_unit", "_multiplier", "_offset")
+
+    def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
+        if method != "__call__":
+            # Only handle ufuncs as callables
+            return NotImplemented
+
+        # Check types and return NotImplemented when upcast type encountered
+        # types = {
+        #     type(arg)
+        #     for arg in list(inputs) + list(kwargs.values())
+        #     if hasattr(arg, "__array_ufunc__")
+        # }
+
+        # Act on limited implementations by conversion to multiplicative identity
+        # Quantity
+        if ufunc.__name__ in ("multiply"):
+            return Unit.__mul__(self, inputs[0])
+        if ufunc.__name__ in ("true_divide", "divide", "floor_divide"):
+            return Unit.__truediv__(self, inputs[0])
+
+        return NotImplemented
 
     def __new__(cls, unit:  str | dict[Entry, int | float] | BaseSet = None):
         if isinstance(unit, str):
@@ -117,6 +140,19 @@ class Unit(metaclass=MetaUnit):
             return unit
         elif isinstance(other, int) or isinstance(other, float):
             return Quantity(other, self)
+        else:
+            global np
+            if np is None:
+                try:
+                    import numpy
+                    np = numpy
+                    if isinstance(other, np.ndarray):
+                        return Quantity(other, self)
+                except ImportError:
+                    pass
+            else:
+                if isinstance(other, np.ndarray):
+                    return Quantity(other, self)
         raise TypeError(f"Can only multiply Unit by Unit.\n{self} * {other}")
 
     def __imul__(self, other: Unit) -> Unit:
@@ -235,6 +271,7 @@ class Unit(metaclass=MetaUnit):
 ## Quantity ## noqa
 #######################################################################################################################
 #######################################################################################################################
+np_wrap = None
 class Quantity(typing.SupportsRound):
     compact_pickle = True
     # full pickle 624 bytes -> compact pickle 98 bytes
@@ -242,6 +279,25 @@ class Quantity(typing.SupportsRound):
     _ledger = ledger
 
     __slots__ = ("_unit", "_base_value")
+
+    def load_numpy(self):
+        global np_wrap
+        if np_wrap is None:
+            from unitpy.numpy_funcs import numpy_wrap
+            np_wrap = numpy_wrap
+
+    def __array_function__(self, func, types, args, kwargs):
+        self.load_numpy()
+        return np_wrap("function", func, args, kwargs, types)
+
+    def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
+        self.load_numpy()
+        types = set(
+            type(arg)
+            for arg in list(inputs) + list(kwargs.values())
+            if hasattr(arg, "__array_ufunc__")
+        )
+        return np_wrap("ufunc", ufunc, inputs, kwargs, types)
 
     def __new__(cls, value: str | int | float = None, unit: Unit | BaseSet | str = None):
         if isinstance(value, str):

@@ -165,6 +165,7 @@ print(abs(-10 * U.degC))  # 10 Celsius
 ### Time
 
 ```python
+from datetime import timedelta
 from unitpy import U
 
 a = 1.234 * U.min
@@ -208,11 +209,59 @@ It should now load the environmental variables when you run the code to format i
 additional code needed.
 
 
+## Numpy Support
 
-## Notes
+[Numpy](https://github.com/numpy/numpy)
+
+```python
+import numpy as np
+
+from unitpy import Unit, Quantity
+
+# numpy + int
+a = np.linspace(0, 4, 5) * Unit.m
+b = 1 * Unit.ft
+c = a+b
+print(a+b)                           # [0.3048 1.3048 2.3048 3.3048 4.3048] meter
+print(a-b)                           # [-0.3048  0.6952  1.6952  2.6952  3.6952] meter
+a += b
+print(a)                             # [0.3048 1.3048 2.3048 3.3048 4.3048] meter
+
+# numpy + numpy
+a = np.linspace(0, 4, 5) * Unit.m
+b = np.linspace(0, 4, 5) * Unit.ft
+print(a+b)                           # [0.     1.3048 2.6096 3.9144 5.2192] meter
+print(a-b)                           # [0.     0.6952 1.3904 2.0856 2.7808] meter
+a += b
+print(a)                             # [0.     1.3048 2.6096 3.9144 5.2192] meter
+
+# numpy * int
+a = np.linspace(0, 4, 5) * Unit.m
+b = 1.2 * Unit.s
+print(a*b)                            # [0.  1.2 2.4 3.6 4.8] meter second
+print(a/b)                            # [0.  0.83333333 1.66666667 2.5 3.33333333] meter/second
+a *= b
+print(a)                              # [0.  1.2 2.4 3.6 4.8] meter second
+
+# numpy * numpy
+a = np.linspace(0, 4, 5) * Unit.m
+b = np.linspace(0, 4, 5) * Unit.s
+print(a*b)                              # [ 0.  1.  4.  9. 16.] meter second
+print(a/b)                              # [nan  1.  1.  1.  1.] meter/second
+a *= b
+print(a)                                # [ 0.  1.  4.  9. 16.] meter second
+
+
+# numpy functions
+a = np.linspace(-2, 4, 5) * Unit.m
+print(np.sum(a))                       # 5 meter
+print(np.max(a))                       # 4 meter
+print(np.abs(a))                       # [2.  0.5 1.  2.5 4. ] meter
+```
 
 ---
 
-* this package utilizes the American spellings "meter," "liter," and "ton"
-* objects are support pickling 
+## Notes
 
+* this package utilizes the American spellings "meter," "liter," and "ton"
+* supports pickling 
