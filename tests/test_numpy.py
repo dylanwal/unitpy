@@ -118,6 +118,13 @@ def test_multi_np_np_inplace():
     assert a.u == (Unit.m * Unit.s)
 
 
+# numpy * numpy(not quantity)
+def test_np_np_div():
+    a = np.linspace(-2, 4, 5) * Unit.m
+    b = np.linspace(-2, 4, 5) / a
+    assert np.all(b.v == np.array([1, 1.,  1.,  1.,  1.]))
+    assert b.u == Unit.m**-1
+
 ## Functions ######################################################################
 def test_np_func_sum():
     a = np.linspace(-2, 4, 5) * Unit.m
@@ -140,3 +147,6 @@ def test_np_func_abs():
     assert b.u == Unit.m
 
 
+def test_np_func_linspace():
+    a = np.linspace(1*Unit.mm, 2*Unit.ft, 4)
+    assert np.allclose(a.v, np.array([1., 203.86666667, 406.73333333, 609.6]), atol=1E-9)

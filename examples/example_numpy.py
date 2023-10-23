@@ -42,3 +42,4 @@ a = np.linspace(-2, 4, 5) * Unit.m
 print(np.sum(a))
 print(np.max(a))
 print(np.abs(a))
+print(np.linspace(1*Unit.mm, 2*Unit.ft, 4))

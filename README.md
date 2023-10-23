@@ -257,6 +257,7 @@ a = np.linspace(-2, 4, 5) * Unit.m
 print(np.sum(a))                       # 5 meter
 print(np.max(a))                       # 4 meter
 print(np.abs(a))                       # [2.  0.5 1.  2.5 4. ] meter
+print(np.linspace(1*Unit.mm, 2*Unit.ft, 4))  # [  1.         203.86666667 406.73333333 609.6       ] millimeter
 ```
 
 ---
