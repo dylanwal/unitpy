@@ -112,15 +112,15 @@ def get_op_output_unit(unit_op: str, first_input_unit: Unit, all_args=None, size
     if unit_op == "sum":
         return first_input_unit
     elif unit_op == "mul":
-        product = first_input_unit
-        for x in all_args:
+        product = get_unit(all_args[0])
+        for x in all_args[1:]:
             if hasattr(x, "unit"):
                 product *= x.unit
         return product
     elif unit_op == "delta":
         return first_input_unit
     elif unit_op == "delta,div":
-        product = first_input_unit
+        product = get_unit(all_args[0])
         for x in all_args[1:]:
             if hasattr(x, "unit"):
                 product /= x.unit
@@ -148,7 +148,7 @@ def get_op_output_unit(unit_op: str, first_input_unit: Unit, all_args=None, size
         return first_input_unit ** size
     elif unit_op == "invdiv":
         # Start with first arg in numerator, all others in denominator
-        product = first_input_unit
+        product = get_unit(all_args[0])
         for x in all_args[1:]:
             if hasattr(x, "unit"):
                 product /= x.unit

@@ -408,7 +408,7 @@ class Quantity(typing.SupportsRound):
             base_value = self.base_value - other.base_value
             quant = Quantity(base_value, self.base_unit)
             return quant.to(self.unit)
-        if other == 0:
+        if isinstance(other, int) and other == 0:
             return self
         raise TypeError(f"Cannot subtract quantities with different units.\n{self} - {other}")
 
