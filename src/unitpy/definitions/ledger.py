@@ -107,7 +107,7 @@ def add_bases():
 
 
 def add_kilogram():
-    base_entry = Entry(label="gram", abbr="g", base_unit=bases.BaseSet(kilogram=1), multiplier=1)
+    base_entry = Entry(label="gram", abbr="g", base_unit=bases.BaseSet(kilogram=1), multiplier=0.001)
     ledger.add_unit(base_entry)
     add_with_prefix(base_entry)
 
