@@ -28,6 +28,9 @@ jobs:
       - name: Install
         run: pip install .
 
+      - name: Install optional dependencies
+        run: pip install numpy
+
       - name: Test with pytest
         run: |
           pytest --cov --cov-report=html
