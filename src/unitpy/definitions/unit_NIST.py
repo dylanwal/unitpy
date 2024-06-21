@@ -428,8 +428,8 @@ units_NIST = {
     "temperature": {
         "base": BaseSet(kelvin=1),
         "Fahrenheit": {
-            "multiplier": 1.8,
-            "offset": -459.67,
+            "multiplier": 5/9,
+            "offset": 459.67,
             "abbr": "degF",
             "additional_labels": ["fahrenheit"]
         },
