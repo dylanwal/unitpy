@@ -33,6 +33,12 @@ cases = (
     ("1 kg", "35.274 oz"),
     ("1 kg", "0.000984207 ton_long"),
 
+    # temperature
+    ("0 degC", "32 degF"),
+    ("50 degF", "10 degC"),
+    ("0 degK", "-273.15 degC"),
+    ("-459.67 degF", "0 degK"),
+
 )
 
 
