@@ -261,7 +261,7 @@ class Unit(metaclass=MetaUnit):
         return self._base_unit
 
     def to_base_value(self, value: int | float) -> int | float:
-        return self.multiplier * value + self.offset
+        return self.multiplier * ( value + self.offset )
 
     def from_base_value(self, value: int | float) -> int | float:
         value = value / self.multiplier - self.offset
