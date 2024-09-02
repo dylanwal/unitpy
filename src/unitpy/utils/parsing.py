@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 
+from unitpy.errors import UnSupportedUnitError
 from unitpy.definitions.ledger import ledger
 from unitpy.core import Unit, Quantity
 
@@ -44,7 +45,8 @@ def parse_unit(unit: str) -> Unit:
     parser = Parser(unit)
     result = parser.parse()
     if not isinstance(result, Unit):
-        raise ValueError(f"Provided string is not a quantity: {unit}")
+        raise ValueError(f"Provided string is not a unit: {unit}")
+
     return result
 
 

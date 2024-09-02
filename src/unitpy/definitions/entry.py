@@ -19,7 +19,7 @@ class Entry:
                  multiplier: int | float,
                  offset: int | float = 0,
                  prefix: prefix_.Prefix = None,
-                 additional_labels: list[str, ...] = None,
+                 additional_labels: list[str] = None,
                  ):
         self.label = label
         self.abbr = abbr if abbr is not None else label

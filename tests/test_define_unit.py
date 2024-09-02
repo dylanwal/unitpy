@@ -61,3 +61,14 @@ def test_unit_deepcopy():
     assert b.label == "meter"
     assert b != a
 
+
+def test_unit_prefix():
+    u = unitpy.Unit("mm")
+    assert u.abbr == "mm"
+    assert u.multiplier == 0.001
+
+
+def test_unit_prefix2():
+    u = unitpy.Unit("kPa")
+    assert u.abbr == "kPa"
+    assert u.multiplier == 1000

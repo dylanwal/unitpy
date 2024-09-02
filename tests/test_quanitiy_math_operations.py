@@ -3,6 +3,7 @@ import math
 import pytest
 
 from unitpy import Q, U
+from unitpy import errors
 
 cases = (
     # expression, answer_unit, answer_value(plus), answer_value(minus)
@@ -98,28 +99,33 @@ def test_compare_e2():
 
 
 def test_compare_error_gt():
-    with pytest.raises(ValueError) as _:
+    with pytest.raises(errors.UnitDimensionError) as _:
         Q("1 m") > Q("1 s")
 
 
 def test_compare_error_lt():
-    with pytest.raises(ValueError) as _:
+    with pytest.raises(errors.UnitDimensionError) as _:
         Q("1 m") < Q("1 s")
 
 
 def test_compare_error_gte():
-    with pytest.raises(ValueError) as _:
+    with pytest.raises(errors.UnitDimensionError) as _:
         Q("1 m") >= Q("1 s")
 
 
 def test_compare_error_lte():
-    with pytest.raises(ValueError) as _:
+    with pytest.raises(errors.UnitDimensionError) as _:
         Q("1 m") <= Q("1 s")
 
 
 def test_compare_error_e():
-    with pytest.raises(ValueError) as _:
+    with pytest.raises(errors.UnitDimensionError) as _:
         Q("1 m") == Q("1 s")
+
+
+def test_power_error():
+    with pytest.raises(TypeError) as _:
+        a = 1 ** U("m")
 
 
 def test_round():

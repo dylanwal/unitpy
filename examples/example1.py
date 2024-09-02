@@ -18,7 +18,7 @@ print(q.base_unit)  # meter / second
 print("")
 
 
-from unitpy import U, Q , Unit, Quantity
+from unitpy import U, Q, Unit, Quantity
 # Q = Quantity
 
 q = 1 * U("km/h")

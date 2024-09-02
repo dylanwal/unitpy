@@ -565,7 +565,7 @@ units_NIST = {
         "liter": {  # US : United States
             "multiplier": 1e-3,
             "abbr": "L",
-            "additional_labels": ["l"]
+            "additional_labels": ["l", "litre"]
         },
         "ounce_fluid_UK": {  # UK : Canadian and U.K. (Imperial)
             "multiplier": 2.841_306e-5,
