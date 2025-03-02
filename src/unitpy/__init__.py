@@ -1,5 +1,6 @@
 import pkg_resources
 
+from unitpy.config import CONFIG
 import unitpy.errors as errors
 from unitpy.definitions.ledger import ledger
 from unitpy.core import Unit, Quantity

@@ -1,7 +1,7 @@
 
 import pytest
 
-from unitpy import U, Q
+from unitpy import U, Q, CONFIG
 
 
 def test_quantity_unit():
@@ -60,3 +60,19 @@ def test_format_str4():
     q = Q("100 km/h")
     string = f"{q:4}"
     assert string == " 100 kilometer/hour"
+
+
+def test_precision():
+    wl0 = Q(630, "nm")
+    dwl = Q(20, "pm")
+    wl1 = wl0 + dwl
+    assert wl1 != wl0
+
+
+def test_precision2():
+    CONFIG.precision = 9
+    wl0 = Q(630, "nm")
+    dwl = Q(20, "pm")
+    wl1 = wl0 + dwl
+    assert wl1 == wl0
+    CONFIG.precision = None

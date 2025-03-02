@@ -52,7 +52,9 @@ class Config:
         # latex = 2
         # html = 3
 
-    def __init__(self):
+    def __init__(self, precision: int | None = None):
+        """"""
+        self.precision = precision
         self.format_symbols = Config.StringFormat.symbols
         self.integer_format_numerator_parenthesis = False
         self.integer_format_denominator_parenthesis = True
@@ -76,4 +78,4 @@ class Config:
                 setattr(self, k, v)
 
 
-config = Config()
+CONFIG = Config()

@@ -7,14 +7,12 @@ import typing
 from datetime import timedelta
 
 from unitpy.errors import UnitDimensionError
-from unitpy.config import config
+from unitpy.config import CONFIG
 from unitpy.definitions.dimensions import Dimension
 from unitpy.definitions.unit_base import BaseSet
 from unitpy.definitions.entry import Entry
 from unitpy.definitions.ledger import ledger
 from unitpy.utils.equation_formating import equation_formater
-
-_precision = 10
 
 
 def get_base_unit(unit: dict[Entry, int | float]) -> BaseSet:
@@ -89,7 +87,7 @@ class Unit(metaclass=MetaUnit):
         self._offset: int | float | None = None
 
     def __str__(self):
-        if config.abbr:
+        if CONFIG.abbr:
             return self.abbr
         return self.label
 
@@ -552,7 +550,8 @@ class Quantity(typing.SupportsRound):
     def value(self) -> int | float:
         value = self._value
         if isinstance(value, float):
-            value = round(value, _precision)
+            if CONFIG.precision is not None:
+                value = round(value, CONFIG.precision)
             if value.is_integer():
                 value = int(value)
 
@@ -570,7 +569,8 @@ class Quantity(typing.SupportsRound):
     def base_value(self) -> int | float:
         value = self._base_value
         if isinstance(value, float):
-            value = round(value, _precision)
+            if CONFIG.precision is not None:
+                value = round(value, CONFIG.precision)
             if value.is_integer():
                 value = int(value)
 

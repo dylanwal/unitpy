@@ -95,7 +95,7 @@ def test_compare_e():
 
 
 def test_compare_e2():
-    assert (Q("1 ft") == Q("12 in")) is True
+    assert Q("1 ft").is_close(Q("12 in")) is True
 
 
 def test_compare_error_gt():
